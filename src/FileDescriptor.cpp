@@ -8,7 +8,9 @@
 #include "FileDescriptor.hpp"
 
 #include <cerrno>
+#include <cstring>
 
+#include "platform.hpp"
 #include "utils.hpp"
 
 namespace checker {
@@ -31,16 +33,12 @@ fd(other.fd),
 max_read_bytes(other.max_read_bytes),
 bytes_read(other.bytes_read),
 error(other.error) {
-    other.filepath = "";
     other.fd = NULL;
-    other.max_read_bytes = 0;
-    other.bytes_read = -1;
-    other.error = "";
 }
 
 FileDescriptor::~FileDescriptor() {
     if (fd) {
-        close_file(fd);
+        platform::close_file(fd);
     }
 }
 
@@ -52,16 +50,16 @@ size_t FileDescriptor::read_cb(void* buffer, size_t size, void* self) {
     if (!self) {
         return -1;
     }
-    FileDescriptor* self = static_cast<FileDescriptor*>(self);
-    return self->read(buffer, size);
+    FileDescriptor* pself = static_cast<FileDescriptor*>(self);
+    return pself->read(buffer, size);
 }
 
-size_t FileDescriptor::write_cb(const char* buffer, size_t buflen, void* self) {
+int FileDescriptor::write_cb(const char* buffer, size_t buflen, void* self) {
     if (!self) {
         return -1;
     }
-    FileDescriptor* self = static_cast<FileDescriptor*> (self);
-    return self->write(buffer, buflen);
+    FileDescriptor* pself = static_cast<FileDescriptor*> (self);
+    return pself->write(buffer, buflen);
 }
 
 size_t FileDescriptor::read(void* buffer, size_t size) {
@@ -74,7 +72,8 @@ size_t FileDescriptor::read(void* buffer, size_t size) {
     }
     size_t rnum = fread(buffer, 1, size, this->fd);
     if (rnum != size && !feof(this->fd)) {
-        append_error("'read' error: [" + strerror(errno) + "], filepath: [" + this->filepath + "]");
+        append_error(std::string() + "'read' error: [" + strerror(errno) + "]," + 
+                " filepath: [" + this->filepath + "]");
         return -1;
     }
     this->bytes_read += rnum;
@@ -93,7 +92,8 @@ size_t FileDescriptor::write(const char* buffer, size_t buflen) {
     }
     size_t wnum = fwrite(buffer, 1, buflen, this->fd);
     if (wnum != buflen) {
-        append_error("'write' error: [" + strerror(errno) + "], filepath: [" + this->filepath + "]");
+        append_error(std::string() + "'write' error: [" + strerror(errno) + "]," + 
+                " filepath: [" + this->filepath + "]");
         return -1;
     }
     return wnum;

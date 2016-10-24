@@ -98,7 +98,7 @@ void JsonRecord::put_uint32(const std::string& fieldname, uint32_t value) {
     }
 }
 
-bool JsonRecord::get_bool(const std::string& fieldname, bool defaultval = false) const {
+bool JsonRecord::get_bool(const std::string& fieldname, bool defaultval) const {
     json_t* field = json_object_get(json, fieldname.c_str());
     if (!(field && json_is_boolean(field))) {
         return defaultval;

@@ -21,7 +21,7 @@
 namespace checker {
 namespace platform {
 
-FileDescriptor open_file(const std::string& filepath, const std::string& mode);
+FileDescriptor open_file(const std::string& filepath, const std::string& mode, uint32_t max_read_bytes);
 
 void close_file(FILE* file);
 

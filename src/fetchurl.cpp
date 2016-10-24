@@ -8,6 +8,7 @@
 #include "fetchurl.hpp"
 
 #include <cstdlib>
+#include <cstring>
 #include <vector>
 
 #include "curl/curl.h"
@@ -73,6 +74,10 @@ public:
     ~CurlEasyHolder() {
         curl_multi_remove_handle(multi.get(), curl);
         curl_easy_cleanup(curl);
+    }
+    
+    CURL* get() {
+        return curl;
     }
     
 private:
@@ -156,7 +161,7 @@ private:
 
 // curl utils
 
-void setmopt_uint32(const CurlMultiHolder& multi, CURLMoption opt, uint32_t value) {
+void setmopt_uint32(CurlMultiHolder& multi, CURLMoption opt, uint32_t value) {
     CURLMcode err = curl_multi_setopt(multi.get(), opt, value);
     if (err != CURLM_OK) {
         throw CheckerException(
@@ -195,10 +200,9 @@ void setopt_uint32(CurlEasyHolder& curl, CURLoption opt, uint32_t value) {
 }
 
 void setopt_bool(CurlEasyHolder& curl, CURLoption opt, bool value) {
-    CURLcode err = curl_easy_setopt(CheckerException.get(), opt, value ? 1 : 0);
+    CURLcode err = curl_easy_setopt(curl.get(), opt, value ? 1 : 0);
     if (err != CURLE_OK) {
-        throw CheckerException(
-            "Error setting option: [" + utils::to_string(opt) + "]," +
+        throw CheckerException("Error setting option: [" + utils::to_string(opt) + "]," +
             " to value: [" + utils::to_string(value) + "]");
     }
 }
@@ -216,7 +220,7 @@ void setopt_string(CurlEasyHolder& curl, CURLoption opt, const std::string& valu
 }
 
 void setopt_object(CurlEasyHolder& curl, CURLoption opt, void* value) {
-    if (nullptr == value) {
+    if (!value) {
         return;
     }
     CURLcode err = curl_easy_setopt(curl.get(), opt, value);
@@ -228,7 +232,7 @@ void setopt_object(CurlEasyHolder& curl, CURLoption opt, void* value) {
 
 struct curl_slist* append_header(struct curl_slist* slist, const std::string& header) {
     struct curl_slist* res = curl_slist_append(slist, header.c_str());
-    if (nullptr == res) {
+    if (!res) {
         throw CheckerException("Error appending header: [" + header + "]");
     }
     return res;
@@ -236,13 +240,15 @@ struct curl_slist* append_header(struct curl_slist* slist, const std::string& he
 
 void apply_headers(FetchCtx& ctx) {
     if (ctx.cf.curl_headers.empty()) return;
-    struct curl_slist* slist = NULL;
-    for (auto& en : ctx.cf.curl_headers) {
+    struct curl_slist* slist = NULL;    
+    for (std::vector<std::pair<std::string, std::string> >::const_iterator it = ctx.cf.curl_headers.begin();
+            it != ctx.cf.curl_headers.end(); ++it) {
+        const std::pair<std::string, std::string>& en = *it;
         ctx.applied_headers.add_header(en.first + ": " + en.second);
         slist = append_header(slist, ctx.applied_headers.get_last_header());
         ctx.applied_headers.set_slist(slist);
     }
-    setopt_object(CURLOPT_HTTPHEADER, static_cast<void*> (slist));
+    setopt_object(ctx.curl, CURLOPT_HTTPHEADER, static_cast<void*> (slist));
 }
 
 // receive response
@@ -253,7 +259,7 @@ size_t write(FetchCtx& ctx, char *buffer, size_t size, size_t nitems) {
         throw CheckerException("'curl_max_bufsize_bytes' exceeded: [" + utils::to_string(len) + "]");
     }
     ctx.buf.resize(len);
-    std::memcpy(ctx.buf.data(), buffer, len);
+    memcpy(ctx.buf.data(), buffer, len);
     return len;
 }
 
@@ -265,7 +271,7 @@ void check_state_after_perform(FetchCtx& ctx) {
 
     // check for response code
     if (ctx.response_code >= 400) {
-        throw CheckerException("HTTP error returned from server" +
+        throw CheckerException(std::string() + "HTTP error returned from server" +
                 " response_code: [" + utils::to_string(ctx.response_code) + "]");
     }
 
@@ -339,12 +345,12 @@ void fill_buffer(FetchCtx& ctx) {
             ctx.open = (1 == active);
         }
 
-        check_state_after_perform();
+        check_state_after_perform(ctx);
     }
 }
 
 size_t write_headers(FetchCtx& ctx, char* buffer, size_t size, size_t nitems) {
-    ctx.headers_received = TRUE;
+    ctx.headers_received = true;
     ctx.response_code = getinfo_long(ctx.curl, CURLINFO_RESPONSE_CODE);
     return size * nitems;
 }
@@ -381,7 +387,7 @@ size_t read_cb(void* buffer, size_t size, void* ctx) /* noexcept */ {
 size_t write_cb(char* buffer, size_t size, size_t nitems, void* ctx) /* noexcept */ {
     FetchCtx* fctx = static_cast<FetchCtx*> (ctx);
     try {
-        return write(fctx, buffer, size, nitems);
+        return write(*fctx, buffer, size, nitems);
     } catch (const std::exception& e) {
         fctx->append_error(e.what());
         return -1;
@@ -391,7 +397,7 @@ size_t write_cb(char* buffer, size_t size, size_t nitems, void* ctx) /* noexcept
 size_t headers_cb(char* buffer, size_t size, size_t nitems, void* ctx) /* noexcept */ {
     FetchCtx* fctx = static_cast<FetchCtx*> (ctx);
     try {
-        return write_headers(fctx, buffer, size, nitems);
+        return write_headers(*fctx, buffer, size, nitems);
     } catch (const std::exception& e) {
         fctx->append_error(e.what());
         return -1;
@@ -427,30 +433,30 @@ void apply_curlopts(FetchCtx& ctx) {
             throw CheckerException("Error setting option: [CURLOPT_HTTP_VERSION]");
         }
     }
-    setopt_bool(ctx, CURLOPT_NOPROGRESS, ctx.cf.curl_noprogress);
-    setopt_bool(ctx, CURLOPT_NOSIGNAL, ctx.cf.curl_nosignal);
+    setopt_bool(ctx.curl, CURLOPT_NOPROGRESS, ctx.cf.curl_noprogress);
+    setopt_bool(ctx.curl, CURLOPT_NOSIGNAL, ctx.cf.curl_nosignal);
 
     // TCP options
-    setopt_bool(ctx, CURLOPT_TCP_NODELAY, ctx.cf.curl_tcp_nodelay);
-    setopt_uint32(ctx, CURLOPT_CONNECTTIMEOUT_MS, ctx.cf.curl_connecttimeout_millis);
+    setopt_bool(ctx.curl, CURLOPT_TCP_NODELAY, ctx.cf.curl_tcp_nodelay);
+    setopt_uint32(ctx.curl, CURLOPT_CONNECTTIMEOUT_MS, ctx.cf.curl_connecttimeout_millis);
 
     // HTTP options
-    setopt_uint32(ctx, CURLOPT_BUFFERSIZE, ctx.cf.curl_buffersize_bytes);
-    setopt_string(ctx, CURLOPT_ACCEPT_ENCODING, ctx.cf.curl_accept_encoding);
-    setopt_bool(ctx, CURLOPT_FOLLOWLOCATION, ctx.cf.curl_followlocation);
-    setopt_uint32(ctx, CURLOPT_MAXREDIRS, ctx.cf.curl_maxredirs);
-    setopt_string(ctx, CURLOPT_USERAGENT, ctx.cf.curl_useragent);
+    setopt_uint32(ctx.curl, CURLOPT_BUFFERSIZE, ctx.cf.curl_buffersize_bytes);
+    setopt_string(ctx.curl, CURLOPT_ACCEPT_ENCODING, ctx.cf.curl_accept_encoding);
+    setopt_bool(ctx.curl, CURLOPT_FOLLOWLOCATION, ctx.cf.curl_followlocation);
+    setopt_uint32(ctx.curl, CURLOPT_MAXREDIRS, ctx.cf.curl_maxredirs);
+    setopt_string(ctx.curl, CURLOPT_USERAGENT, ctx.cf.curl_useragent);
 
     // throttling options
-    setopt_uint32(ctx, CURLOPT_MAX_SEND_SPEED_LARGE, ctx.cf.curl_max_sent_speed_large_bytes_per_second);
-    setopt_uint32(ctx, CURLOPT_MAX_RECV_SPEED_LARGE, ctx.cf.curl_max_recv_speed_large_bytes_per_second);
+    setopt_uint32(ctx.curl, CURLOPT_MAX_SEND_SPEED_LARGE, ctx.cf.curl_max_sent_speed_large_bytes_per_second);
+    setopt_uint32(ctx.curl, CURLOPT_MAX_RECV_SPEED_LARGE, ctx.cf.curl_max_recv_speed_large_bytes_per_second);
 
     // SSL options
-    setopt_string(ctx, CURLOPT_SSLCERT, ctx.cf.curl_sslcert_filename);
-    setopt_string(ctx, CURLOPT_SSLCERTTYPE, ctx.cf.curl_sslcertype);
-    setopt_string(ctx, CURLOPT_SSLKEY, ctx.cf.curl_sslkey_filename);
-    setopt_string(ctx, CURLOPT_SSLKEYTYPE, ctx.cf.curl_ssl_key_type);
-    setopt_string(ctx, CURLOPT_KEYPASSWD, ctx.cf.curl_ssl_keypasswd);
+    setopt_string(ctx.curl, CURLOPT_SSLCERT, ctx.cf.curl_sslcert_filename);
+    setopt_string(ctx.curl, CURLOPT_SSLCERTTYPE, ctx.cf.curl_sslcertype);
+    setopt_string(ctx.curl, CURLOPT_SSLKEY, ctx.cf.curl_sslkey_filename);
+    setopt_string(ctx.curl, CURLOPT_SSLKEYTYPE, ctx.cf.curl_ssl_key_type);
+    setopt_string(ctx.curl, CURLOPT_KEYPASSWD, ctx.cf.curl_ssl_keypasswd);
     if (ctx.cf.curl_require_tls) {
         CURLcode err = curl_easy_setopt(ctx.curl.get(), CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1);
         if (CURLE_OK != err) {
@@ -458,14 +464,14 @@ void apply_curlopts(FetchCtx& ctx) {
         }
     }
     if (ctx.cf.curl_ssl_verifyhost) {
-        setopt_uint32(ctx, CURLOPT_SSL_VERIFYHOST, 2);
+        setopt_uint32(ctx.curl, CURLOPT_SSL_VERIFYHOST, 2);
     } else {
-        setopt_bool(ctx, CURLOPT_SSL_VERIFYHOST, false);
+        setopt_bool(ctx.curl, CURLOPT_SSL_VERIFYHOST, false);
     }
-    setopt_bool(ctx, CURLOPT_SSL_VERIFYPEER, ctx.cf.curl_ssl_verifypeer);
-    setopt_string(ctx, CURLOPT_CAINFO, ctx.cf.curl_cainfo_filename);
-    setopt_string(ctx, CURLOPT_CRLFILE, ctx.cf.curl_crlfile_filename);
-    setopt_string(ctx, CURLOPT_SSL_CIPHER_LIST, ctx.cf.curl_ssl_cipher_list);
+    setopt_bool(ctx.curl, CURLOPT_SSL_VERIFYPEER, ctx.cf.curl_ssl_verifypeer);
+    setopt_string(ctx.curl, CURLOPT_CAINFO, ctx.cf.curl_cainfo_filename);
+    setopt_string(ctx.curl, CURLOPT_CRLFILE, ctx.cf.curl_crlfile_filename);
+    setopt_string(ctx.curl, CURLOPT_SSL_CIPHER_LIST, ctx.cf.curl_ssl_cipher_list);
 }
 
 } // namespace
@@ -473,24 +479,24 @@ void apply_curlopts(FetchCtx& ctx) {
 JsonRecord fetchurl(const Config& cf) {
     // multi
     CurlMultiHolder multi(curl_multi_init());
-    setmopt_uint32(CURLMOPT_MAXCONNECTS, cf.curl_max_connects);
+    setmopt_uint32(multi, CURLMOPT_MAXCONNECTS, cf.curl_max_connects);
     
     // curl
     CurlEasyHolder curl(multi, curl_easy_init());
-    apply_curlopts(cf, curl);
-    
-    // load JSON
     FetchCtx ctx(cf, multi, curl);
+    apply_curlopts(ctx);
+    
+    // load JSON    
     json_error_t error;
     int flags = JSON_REJECT_DUPLICATES | JSON_DECODE_ANY | JSON_DISABLE_EOF_CHECK;
-    json_t json = json_load_callback(read_cb, &ctx, flags, &error);
+    json_t* json = json_load_callback(read_cb, &ctx, flags, &error);
     if (!json) {
-        throw CheckerException("Error parsing JSON:" +
+        throw CheckerException(std::string() + "Error parsing JSON:" +
                 " text: [" + error.text + "]" +
                 " line: [" + utils::to_string(error.line) + "]" +
                 " column: [" + utils::to_string(error.column) + "]" +
                 " position: [" + utils::to_string(error.position) + "],"
-                " callback error: [" + ctx.get_error() + "]");
+                " callback error: [" + ctx.error + "]");
     }
     return JsonRecord(json);
 }

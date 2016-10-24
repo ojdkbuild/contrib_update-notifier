@@ -6,7 +6,7 @@
  */
 
 #include <cstdlib>
-#include <cstdint>
+#include <stdint.h>
 
 #include <popt.h>
 
@@ -25,7 +25,7 @@ int main(int argc, char** argv) {
         { NULL, '\0', POPT_ARG_INCLUDE_TABLE, poptHelpOptions, 0, "Help options:", NULL},
         { NULL, 0, 0, NULL, 0}
     };
-    poptContext optCon = poptGetContext(NULL, argc, argv, optionsTable, 0);
+    poptContext optCon = poptGetContext(NULL, argc, const_cast<const char**>(argv), optionsTable, 0);
     while (poptGetNextOpt(optCon) >= 0);
     poptPrintUsage(optCon, stderr, 0);
     

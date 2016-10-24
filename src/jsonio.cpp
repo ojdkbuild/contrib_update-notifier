@@ -17,12 +17,12 @@
 namespace checker {
 
 JsonRecord read_from_file(const Config& cf, const std::string& filepath) {    
-    FileDescriptor fd = platform::open_file(filepath, "r");
+    FileDescriptor fd = platform::open_file(filepath, "r", cf.max_json_size_bytes);
     json_error_t error;
     int flags = JSON_REJECT_DUPLICATES | JSON_DECODE_ANY | JSON_DISABLE_EOF_CHECK;
-    json_t json = json_load_callback(FileDescriptor::read_cb, &fd, flags, &error);
+    json_t* json = json_load_callback(FileDescriptor::read_cb, &fd, flags, &error);
     if (!json) {
-        throw CheckerException("Error parsing JSON:" +
+        throw CheckerException(std::string() + "Error parsing JSON:" +
             " text: [" + error.text + "]" +
             " line: [" + utils::to_string(error.line) + "]" +
             " column: [" + utils::to_string(error.column) + "]" +
@@ -33,7 +33,7 @@ JsonRecord read_from_file(const Config& cf, const std::string& filepath) {
 }
 
 void write_to_file(const Config& cf, const JsonRecord& json, const std::string& filepath) {
-    FileDescriptor fd = platform::open_file(filepath, "w");
+    FileDescriptor fd = platform::open_file(filepath, "w", cf.max_json_size_bytes);
     int flags = JSON_ENCODE_ANY | JSON_INDENT(4) | JSON_PRESERVE_ORDER;
     int res = json_dump_callback(json.get(), FileDescriptor::write_cb, &fd, flags);
     if (0 != res) {

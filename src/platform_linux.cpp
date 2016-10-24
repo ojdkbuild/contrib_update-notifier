@@ -9,6 +9,7 @@
 
 #include <cerrno>
 #include <cstdio>
+#include <cstring>
 
 #include <unistd.h>
 #include <pwd.h>
@@ -22,14 +23,14 @@
 namespace checker {
 namespace platform {
 
-FileDescriptor open_file(const std::string& filepath, const std::string& mode) {
+FileDescriptor open_file(const std::string& filepath, const std::string& mode, uint32_t max_read_bytes) {
     FILE* res = fopen(filepath.c_str(), mode.c_str());
     if (!res) {
         throw CheckerException("Error opening file, path: [" + filepath + "]," + 
                 " mode: [" + mode + "], error: [" + strerror(errno) +
                 " (" + utils::to_string(errno) + ")]");
     }
-    return FileDescriptor(res);
+    return FileDescriptor(filepath, res, max_read_bytes);
 }
 
 void close_file(FILE* file) {
@@ -47,22 +48,22 @@ std::string get_appdata_directory(const Config& cf) {
     std::memset(&pw, '\0', sizeof(pw));
     std::string buf;
     buf.resize(cf.max_path_length);
-    int err = getpwuid_r(getuid(), &pw, &buf.front(), cf.max_path_length, &pwp);
+    int err = getpwuid_r(getuid(), &pw, &buf[0], cf.max_path_length, &pwp);
     if (!err) {
-        throw CheckerException("Error getting appdata directory: [" + strerror(errno) +
+        throw CheckerException(std::string() + "Error getting appdata directory: [" + strerror(errno) +
                 " (" + utils::to_string(errno) + ")]");
     }
-    if (!pw->pw_dir) {
-        throw CheckerException("Error getting home directory for user," + 
+    if (!pw.pw_dir) {
+        throw CheckerException(std::string() + "Error getting home directory for user," + 
                 " uid: [" + utils::to_string(getuid()) + "]");
     }
-    return std::string(pw->pw_dir) + "/.config/" + cf.application_name + "/";
+    return std::string(pw.pw_dir) + "/.config/" + cf.application_name + "/";
 }
 
 void create_directory(const std::string& dirpath) {
     int err = mkdir(dirpath.c_str(), 0);
     if (err < 0 && EEXIST != errno) {
-        throw CheckerException("Error creating directory: [" + strerror(errno) +
+        throw CheckerException(std::string() + "Error creating directory: [" + strerror(errno) +
                 " (" + utils::to_string(errno) + ")]");
     }
 }

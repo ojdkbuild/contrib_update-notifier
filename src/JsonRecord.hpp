@@ -19,7 +19,7 @@
 namespace checker {
 
 class JsonRecord {
-    json_t* json;
+    mutable json_t* json;
     
 public:
     JsonRecord();

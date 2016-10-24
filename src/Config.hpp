@@ -20,8 +20,7 @@ class Config {
 public:    
     uint32_t shipped_version_number;
     std::string remote_version_url;
-    uint32_t max_config_size_bytes;
-    uint32_t max_version_size_bytes;
+    uint32_t max_json_size_bytes;
     std::string version_filename;
     std::string status_filename;
     uint32_t max_path_length;
@@ -67,8 +66,7 @@ public:
     
     Config() :
     shipped_version_number(-1),
-    max_config_size_bytes(1 << 15),
-    max_version_size_bytes(0),
+    max_json_size_bytes(1 << 15),
     max_path_length(0),
     
     curl_max_connects(0),
@@ -96,8 +94,7 @@ public:
     Config(const JsonRecord& json) :
     shipped_version_number(json.get_uint32("shipped_version_number", -1)),
     remote_version_url(json.get_string("remote_version_url")),
-    max_config_size_bytes(1 << 15),
-    max_version_size_bytes(json.get_uint32("max_version_size_bytes")),
+    max_json_size_bytes(json.get_uint32("max_json_size_bytes", 1 << 15)),
     version_filename(json.get_string("version_filename")),
     status_filename(json.get_string("status_filename")),
     max_path_length(json.get_uint32("max_path_length", 1 << 10)),

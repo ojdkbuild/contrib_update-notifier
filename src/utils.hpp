@@ -16,7 +16,7 @@ namespace utils {
 
 template<typename T>
 std::string to_string(const T& obj) {
-    std::stringstream ss{};
+    std::stringstream ss;
     ss << obj;
     return ss.str();
 }
