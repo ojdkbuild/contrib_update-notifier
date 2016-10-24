@@ -16,8 +16,8 @@
 
 namespace checker {
 
-JsonRecord read_from_file(const Config& cf, const std::string& filepath) {    
-    FileDescriptor fd = platform::open_file(filepath, "r", cf.max_json_size_bytes);
+JsonRecord read_from_file(const std::string& filepath, uint32_t max_read_bytes) {    
+    FileDescriptor fd = platform::open_file(filepath, "r", max_read_bytes);
     json_error_t error;
     int flags = JSON_REJECT_DUPLICATES | JSON_DECODE_ANY | JSON_DISABLE_EOF_CHECK;
     json_t* json = json_load_callback(FileDescriptor::read_cb, &fd, flags, &error);
@@ -32,8 +32,8 @@ JsonRecord read_from_file(const Config& cf, const std::string& filepath) {
     return JsonRecord(json);
 }
 
-void write_to_file(const Config& cf, const JsonRecord& json, const std::string& filepath) {
-    FileDescriptor fd = platform::open_file(filepath, "w", cf.max_json_size_bytes);
+void write_to_file(const JsonRecord& json, const std::string& filepath) {
+    FileDescriptor fd = platform::open_file(filepath, "w", 0);
     int flags = JSON_ENCODE_ANY | JSON_INDENT(4) | JSON_PRESERVE_ORDER;
     int res = json_dump_callback(json.get(), FileDescriptor::write_cb, &fd, flags);
     if (0 != res) {

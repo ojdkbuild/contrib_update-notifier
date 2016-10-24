@@ -10,7 +10,8 @@ add_executable ( ${PROJECT_NAME}
     ${CMAKE_CURRENT_LIST_DIR}/src/jsonio.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/jsonio.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
-    ${CMAKE_CURRENT_LIST_DIR}/src/platform_linux.cpp )
+    ${CMAKE_CURRENT_LIST_DIR}/src/platform_linux.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/utils.cpp )
 
 target_include_directories(${PROJECT_NAME} BEFORE PRIVATE ${CMAKE_CURRENT_LIST_DIR}/src )
 

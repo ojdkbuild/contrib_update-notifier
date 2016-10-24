@@ -21,6 +21,8 @@
 namespace checker {
 namespace platform {
 
+bool file_exists(const std::string& filepath);
+
 FileDescriptor open_file(const std::string& filepath, const std::string& mode, uint32_t max_read_bytes);
 
 void close_file(FILE* file);
@@ -30,6 +32,10 @@ std::string get_appdata_directory(const Config& cf);
 void create_directory(const std::string& dirpath);
 
 void thread_sleep_millis(uint32_t millis);
+
+std::string current_executable_path();
+
+std::string current_datetime();
 
 } // namespace
 } 

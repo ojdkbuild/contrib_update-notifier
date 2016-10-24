@@ -21,6 +21,10 @@ std::string to_string(const T& obj) {
     return ss.str();
 }
 
+std::string strip_filename(const std::string& file_path);
+
+std::string current_datetime();
+
 } // namespace
 }
 

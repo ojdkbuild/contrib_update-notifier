@@ -23,6 +23,11 @@
 namespace checker {
 namespace platform {
 
+bool file_exists(const std::string& filepath) {
+    struct stat st;
+    return 0 == stat(filepath.c_str(), &st);
+}
+
 FileDescriptor open_file(const std::string& filepath, const std::string& mode, uint32_t max_read_bytes) {
     FILE* res = fopen(filepath.c_str(), mode.c_str());
     if (!res) {
@@ -77,6 +82,32 @@ void thread_sleep_millis(uint32_t millis) {
         throw CheckerException("'nanosleep' error for mllis: [" + utils::to_string(millis) + "]," +
                 " [" + strerror(errno) + " (" + utils::to_string(errno) + ")]");
     }
+}
+
+std::string current_executable_path() {
+    std::string res;
+    ssize_t size = 64;
+    for (;;) {
+        res.resize(size);
+        char* link = &res[0];
+        ssize_t res_size = readlink("/proc/self/exe", link, size);
+        if (res_size < 0) {
+            throw CheckerException(strerror(errno));
+        }
+        if (res_size < size) {
+            res.resize(res_size);
+            break;
+        }
+        size = size * 2;
+    }
+    return res;
+}
+
+std::string current_datetime() {
+    time_t cur = time(NULL);
+    struct tm time;
+    localtime_r(&cur, &time);
+    return std::string(asctime(&time));
 }
 
 } // namespace

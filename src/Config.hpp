@@ -24,6 +24,7 @@ public:
     std::string version_filename;
     std::string status_filename;
     uint32_t max_path_length;
+    std::string vendor_name;
     std::string application_name;
     
     // curl general behavior options
@@ -65,8 +66,8 @@ public:
     std::vector<std::pair<std::string, std::string> > curl_headers;
     
     Config() :
-    shipped_version_number(-1),
-    max_json_size_bytes(1 << 15),
+    shipped_version_number(0),
+    max_json_size_bytes(0),
     max_path_length(0),
     
     curl_max_connects(0),
@@ -98,6 +99,7 @@ public:
     version_filename(json.get_string("version_filename")),
     status_filename(json.get_string("status_filename")),
     max_path_length(json.get_uint32("max_path_length", 1 << 10)),
+    vendor_name(json.get_string("vendor_name", "ojdkbuild")),
     application_name(json.get_string("application_name", "update_checker")),
     
     curl_max_connects(json.get_uint32("curl_max_connects", 1)), 

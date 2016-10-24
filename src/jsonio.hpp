@@ -13,9 +13,9 @@
 
 namespace checker {
 
-JsonRecord read_from_file(const Config& cf, const std::string& filepath);
+JsonRecord read_from_file(const std::string& filepath, uint32_t max_read_bytes);
 
-void write_to_file(const Config& cf, const JsonRecord& json, const std::string& filepath);
+void write_to_file(const JsonRecord& json, const std::string& filepath);
 
 } // namespace
 

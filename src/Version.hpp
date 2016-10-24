@@ -17,7 +17,7 @@
  * description (for bubble)
  */
 
-#include <cstdint>
+#include <stdint.h>
 #include <string>
 
 #include "JsonRecord.hpp"
@@ -34,7 +34,7 @@ public:
     uint32_t version_number;
 
     Version() :
-    version_number(-1) { }
+    version_number(0) { }
     
     Version(const JsonRecord& json) :
     package_name(json.get_string("package_name")),
