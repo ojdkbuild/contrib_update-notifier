@@ -105,7 +105,7 @@ std::string resolve_config_path(Options& opts) {
 
 std::string resolve_version_path(const checker::Config& cf) {
     namespace ch = checker;
-    std::string appdata_dir = ch::platform::get_appdata_directory(cf);
+    std::string appdata_dir = ch::platform::get_userdata_directory(cf);
     std::string vendor_dir = appdata_dir + "/" + cf.vendor_name;
     ch::platform::create_directory(vendor_dir);
     std::string appdir = vendor_dir + "/" + cf.application_name;

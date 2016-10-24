@@ -22,7 +22,6 @@ public:
     std::string remote_version_url;
     uint32_t max_json_size_bytes;
     std::string version_filename;
-    std::string status_filename;
     uint32_t max_path_length;
     std::string vendor_name;
     std::string application_name;
@@ -97,7 +96,6 @@ public:
     remote_version_url(json.get_string("remote_version_url")),
     max_json_size_bytes(json.get_uint32("max_json_size_bytes", 1 << 15)),
     version_filename(json.get_string("version_filename")),
-    status_filename(json.get_string("status_filename")),
     max_path_length(json.get_uint32("max_path_length", 1 << 10)),
     vendor_name(json.get_string("vendor_name", "ojdkbuild")),
     application_name(json.get_string("application_name", "update_checker")),

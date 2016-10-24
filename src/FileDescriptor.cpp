@@ -96,7 +96,7 @@ size_t FileDescriptor::write(const char* buffer, size_t buflen) {
                 " filepath: [" + this->filepath + "]");
         return -1;
     }
-    return wnum;
+    return 0;
 }
 
 void FileDescriptor::append_error(const std::string& err_msg) {

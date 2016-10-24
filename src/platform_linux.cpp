@@ -41,20 +41,17 @@ FileDescriptor open_file(const std::string& filepath, const std::string& mode, u
 void close_file(FILE* file) {
     int err = fclose(file);
     (void) err; // may be called from destructor
-    // if (err) {
-    //    throw CheckerException("Error closing file: [" + strerror(errno) +
-    //            " (" + utils::to_string(errno) + ")]");
-    // }
 }
 
-std::string get_appdata_directory(const Config& cf) {
+std::string get_userdata_directory(const Config& cf) {
     struct passwd pw;
     struct passwd* pwp;
     std::memset(&pw, '\0', sizeof(pw));
     std::string buf;
     buf.resize(cf.max_path_length);
+    errno = ENOENT;
     int err = getpwuid_r(getuid(), &pw, &buf[0], cf.max_path_length, &pwp);
-    if (!err) {
+    if (err) {
         throw CheckerException(std::string() + "Error getting appdata directory: [" + strerror(errno) +
                 " (" + utils::to_string(errno) + ")]");
     }
@@ -62,14 +59,14 @@ std::string get_appdata_directory(const Config& cf) {
         throw CheckerException(std::string() + "Error getting home directory for user," + 
                 " uid: [" + utils::to_string(getuid()) + "]");
     }
-    return std::string(pw.pw_dir) + "/.config/" + cf.application_name + "/";
+    return std::string(pw.pw_dir) + "/.config/";
 }
 
 void create_directory(const std::string& dirpath) {
-    int err = mkdir(dirpath.c_str(), 0);
+    int err = mkdir(dirpath.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
     if (err < 0 && EEXIST != errno) {
-        throw CheckerException(std::string() + "Error creating directory: [" + strerror(errno) +
-                " (" + utils::to_string(errno) + ")]");
+        throw CheckerException(std::string() + "Error creating directory: [" + dirpath + "]," +
+                " error: [" + strerror(errno) + " (" + utils::to_string(errno) + ")]");
     }
 }
 

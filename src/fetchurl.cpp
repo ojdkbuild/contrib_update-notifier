@@ -343,9 +343,10 @@ void fill_buffer(FetchCtx& ctx) {
                     "cURL multi_perform error: [" + utils::to_string(err) + "]");
             }
             ctx.open = (1 == active);
+            if (!ctx.open) {
+                check_state_after_perform(ctx);
+            }
         }
-
-        check_state_after_perform(ctx);
     }
 }
 
