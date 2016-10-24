@@ -62,7 +62,7 @@ void JsonRecord::put_string(const std::string& fieldname, const std::string& val
         throw CheckerException("Cannot create JSON string, field: [" + fieldname + "]," +
                 " value: [" + value +"]");
     }
-    int err = json_object_set(json, fieldname.c_str(), field);
+    int err = json_object_set_new(json, fieldname.c_str(), field);
     if (err) {
         throw CheckerException("Cannot set JSON string, field: [" + fieldname + "]," + 
                 " value: [" + value + "]");
@@ -91,7 +91,7 @@ void JsonRecord::put_uint32(const std::string& fieldname, uint32_t value) {
         throw CheckerException("Cannot create JSON integer, field: [" + fieldname + "]," +
                 " value: [" + utils::to_string(value) + "]");
     }
-    int err = json_object_set(json, fieldname.c_str(), field);
+    int err = json_object_set_new(json, fieldname.c_str(), field);
     if (err) {
         throw CheckerException("Cannot set JSON integer, field: [" + fieldname + "]," +
                 " value: [" + utils::to_string(value) + "]");
@@ -112,7 +112,7 @@ void JsonRecord::put_bool(const std::string& fieldname, bool value) {
         throw CheckerException("Cannot create JSON bool, field: [" + fieldname + "]," +
                 " value: [" + utils::to_string(value) + "]");
     }
-    int err = json_object_set(json, fieldname.c_str(), field);
+    int err = json_object_set_new(json, fieldname.c_str(), field);
     if (err) {
         throw CheckerException("Cannot set JSON bool, field: [" + fieldname + "]," +
                 " value: [" + utils::to_string(value) + "]");
