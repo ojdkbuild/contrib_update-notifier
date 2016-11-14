@@ -62,4 +62,11 @@ file ( COPY ${CMAKE_CURRENT_LIST_DIR}/resources/checker_config.json
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
 
 # notifier
+add_executable ( notifier WIN32
+        src/utils.cpp
+        src/notifier.cpp
+        src/notifier.rc )
 
+target_include_directories( notifier BEFORE PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/src
+        ${checker_DEPS_PC_INCLUDE_DIRS} )
