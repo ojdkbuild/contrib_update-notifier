@@ -6,6 +6,7 @@
     "max_path_length": 1024,
     "vendor_name": "ojdkbuild",
     "application_name": "update_checker",
+    "work_directory": "C:/tmp/",
 
     "curl_max_connects": 1,
     "curl_max_bufsize_bytes": 32768,
