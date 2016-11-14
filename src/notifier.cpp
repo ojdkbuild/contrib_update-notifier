@@ -2,28 +2,162 @@
 #include <cstring>
 #include <string>
 
-#include "notifier.hpp"
 #define UNICODE
 #define _UNICODE
 #include <windows.h>
 #include <shellapi.h>
 #include <commctrl.h>
-#include <strsafe.h>
 
+#include "notifier.hpp"
 #include "utils.hpp"
+
+namespace { // anonymous
 
 namespace utils = checker::utils;
 
-const UINT WMAPP_NOTIFYCALLBACK = WM_APP + 1;
-const std::wstring NOTIFIER_WINDOW_CLASS = utils::widen("notifier");
-HINSTANCE NOTIFIER_HANDLE_INSTANCE = NULL;
 class __declspec(uuid("7cf53058-6728-45bc-a0e6-1ed7629708bc")) NOTIFIER_ICON;
+const UINT WMAPP_NOTIFYCALLBACK = WM_APP + 1;
+HINSTANCE NOTIFIER_HANDLE_INSTANCE = NULL;
 
-// Forward declarations of functions included in this code module:
-LRESULT CALLBACK    window_callback(HWND, UINT, WPARAM, LPARAM);
-void                show_context_menu(HWND hwnd, POINT pt);
-BOOL                add_notification(HWND hwnd);
-BOOL                delete_notification();
+const std::wstring NOTIFIER_WINDOW_CLASS = utils::widen("notifier");
+const std::wstring NOTIFIER_TOOLTIP = utils::widen("ojdkbuild update");
+const std::wstring NOTIFIER_TITLE = utils::widen("ojdkbuild update title");
+const std::wstring NOTIFIER_TEXT = utils::widen("ojdkbuild update text");
+const std::wstring NOTIFIER_URL = utils::widen("https://github.com/ojdkbuild/ojdkbuild#downloads-for-windows-x86_64");
+const std::wstring NOTIFIER_ABOUT_TITLE = utils::widen("About ojdkbuild Update Notifier");
+const std::wstring NOTIFIER_ABOUT_TEXT = utils::widen("ojdkbuild about text");
+const std::wstring NOTIFIER_UPDATE_TITLE = utils::widen("ojdkbuild Update");
+const std::wstring NOTIFIER_UPDATE_TEXT = utils::widen("ojdkbuild update text");
+
+BOOL add_notification(HWND hwnd) {
+    NOTIFYICONDATA nid;
+    memset(&nid, '\0', sizeof(NOTIFYICONDATA));
+    nid.cbSize = sizeof(NOTIFYICONDATA);
+    nid.hWnd = hwnd;
+    nid.uFlags = NIF_INFO | NIF_ICON | NIF_TIP | NIF_MESSAGE | NIF_SHOWTIP | NIF_GUID;
+    nid.guidItem = __uuidof(NOTIFIER_ICON);
+    nid.uCallbackMessage = WMAPP_NOTIFYCALLBACK;
+    LoadIconMetric(NOTIFIER_HANDLE_INSTANCE, MAKEINTRESOURCE(IDI_NOTIFICATIONICON), LIM_SMALL, &nid.hIcon);
+    wcscpy_s(nid.szTip, 128, NOTIFIER_TOOLTIP.c_str());
+    nid.dwInfoFlags = NIIF_INFO | NIIF_NOSOUND | NIIF_RESPECT_QUIET_TIME;
+    wcscpy_s(nid.szInfoTitle, 64, NOTIFIER_TITLE.c_str());
+    wcscpy_s(nid.szInfo, 256, NOTIFIER_TEXT.c_str());
+    Shell_NotifyIcon(NIM_ADD, &nid);
+    nid.uVersion = NOTIFYICON_VERSION_4;
+    return Shell_NotifyIcon(NIM_SETVERSION, &nid);
+}
+
+BOOL delete_notification() {
+    NOTIFYICONDATA nid;
+    memset(&nid, '\0', sizeof(NOTIFYICONDATA));
+    nid.cbSize = sizeof(NOTIFYICONDATA);
+    nid.uFlags = NIF_GUID;
+    nid.guidItem = __uuidof(NOTIFIER_ICON);
+    return Shell_NotifyIcon(NIM_DELETE, &nid);
+}
+
+BOOL restore_tooltip() {
+    NOTIFYICONDATA nid;
+    memset(&nid, '\0', sizeof(NOTIFYICONDATA));
+    nid.cbSize = sizeof(NOTIFYICONDATA);
+    nid.uFlags = NIF_SHOWTIP | NIF_GUID;
+    nid.guidItem = __uuidof(NOTIFIER_ICON);
+    return Shell_NotifyIcon(NIM_MODIFY, &nid);
+}
+
+void show_context_menu(HWND hwnd, int x, int y) {
+    HMENU hMenu = LoadMenu(NOTIFIER_HANDLE_INSTANCE, MAKEINTRESOURCE(IDC_CONTEXTMENU));
+    if (hMenu) {
+        HMENU hSubMenu = GetSubMenu(hMenu, 0);
+        if (hSubMenu) {
+            // our window must be foreground before calling TrackPopupMenu or the menu will not disappear when the user clicks away
+            SetForegroundWindow(hwnd);
+            // respect menu drop alignment
+            UINT uFlags = TPM_RIGHTBUTTON;
+            if (0 != GetSystemMetrics(SM_MENUDROPALIGNMENT)) {
+                uFlags |= TPM_RIGHTALIGN;
+            } else {
+                uFlags |= TPM_LEFTALIGN;
+            }
+            TrackPopupMenuEx(hSubMenu, uFlags, x, y, hwnd, NULL);
+        }
+        DestroyMenu(hMenu);
+    }
+}
+
+void open_browser() {
+    ShellExecuteW(NULL, NULL, NOTIFIER_URL.c_str(), NULL, NULL, SW_SHOW);
+}
+
+void show_update_dialog(HWND hwnd) {
+    int res = MessageBox(hwnd,  NOTIFIER_UPDATE_TEXT.c_str(), NOTIFIER_UPDATE_TITLE.c_str(), MB_YESNO);
+    if (IDYES == res) {
+        open_browser();
+    }
+}
+
+LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+    switch (message) {
+    case WM_CREATE:
+        if (!add_notification(hwnd)) {
+            return -1;
+        }
+        break;
+    case WM_COMMAND: {
+            int const wmId = LOWORD(wParam);
+            switch (wmId) {
+            case IDM_DOWNLOAD:
+                open_browser();
+                DestroyWindow(hwnd);
+                break;
+            case IDM_ABOUT:
+                MessageBox(hwnd,  NOTIFIER_ABOUT_TEXT.c_str(), NOTIFIER_ABOUT_TITLE.c_str(), MB_OK);
+                break;
+            case IDM_CANCEL:
+            case IDM_DISABLE:
+                DestroyWindow(hwnd);
+                break;
+            default:
+                return DefWindowProc(hwnd, message, wParam, lParam);
+            }
+        }
+        break;
+
+    case WMAPP_NOTIFYCALLBACK:
+        switch (LOWORD(lParam)) {
+        case NIN_SELECT:
+            show_update_dialog(hwnd);
+            DestroyWindow(hwnd);
+            break;
+        case NIN_BALLOONTIMEOUT:
+            restore_tooltip();
+            break;
+
+        case NIN_BALLOONUSERCLICK:
+            restore_tooltip();
+            show_update_dialog(hwnd);
+            DestroyWindow(hwnd);
+            break;
+
+        case WM_CONTEXTMENU:
+            show_context_menu(hwnd, LOWORD(wParam), HIWORD(wParam));
+            break;
+        }
+        break;
+
+    case WM_TIMER:
+        break;
+    case WM_DESTROY:
+        delete_notification();
+        PostQuitMessage(0);
+        break;
+    default:
+        return DefWindowProc(hwnd, message, wParam, lParam);
+    }
+    return 0;
+}
+
+} // namespace
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /* nCmdShow */) {
     NOTIFIER_HANDLE_INSTANCE = hInstance;
@@ -42,136 +176,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
-    }
-    return 0;
-}
-
-BOOL add_notification(HWND hwnd) {
-    NOTIFYICONDATA nid;
-    memset(&nid, '\0', sizeof(NOTIFYICONDATA));
-    nid.cbSize = sizeof(NOTIFYICONDATA);
-    nid.hWnd = hwnd;
-    nid.uFlags = NIF_INFO | NIF_ICON | NIF_MESSAGE | NIF_SHOWTIP | NIF_GUID;
-    nid.guidItem = __uuidof(NOTIFIER_ICON);
-    nid.uCallbackMessage = WMAPP_NOTIFYCALLBACK;
-    LoadIconMetric(NOTIFIER_HANDLE_INSTANCE, MAKEINTRESOURCE(IDI_NOTIFICATIONICON), LIM_SMALL, &nid.hIcon);
-    nid.dwInfoFlags = NIIF_INFO | NIIF_NOSOUND | NIIF_RESPECT_QUIET_TIME;
-    LoadString(NOTIFIER_HANDLE_INSTANCE, IDS_LOWINK_TITLE, nid.szInfoTitle, ARRAYSIZE(nid.szInfoTitle));
-    LoadString(NOTIFIER_HANDLE_INSTANCE, IDS_LOWINK_TEXT, nid.szInfo, ARRAYSIZE(nid.szInfo));
-    Shell_NotifyIcon(NIM_ADD, &nid);
-    nid.uVersion = NOTIFYICON_VERSION_4;
-    return Shell_NotifyIcon(NIM_SETVERSION, &nid);
-}
-
-BOOL delete_notification() {
-    NOTIFYICONDATA nid;
-    memset(&nid, '\0', sizeof(NOTIFYICONDATA));
-    nid.uFlags = NIF_GUID;
-    nid.guidItem = __uuidof(NOTIFIER_ICON);
-    return Shell_NotifyIcon(NIM_DELETE, &nid);
-}
-
-BOOL show_balloon() {
-    NOTIFYICONDATA nid;
-    memset(&nid, '\0', sizeof(NOTIFYICONDATA));
-    nid.cbSize = sizeof(NOTIFYICONDATA);
-    nid.uFlags = NIF_INFO | NIF_GUID;
-    nid.guidItem = __uuidof(NOTIFIER_ICON);
-    nid.dwInfoFlags = NIIF_INFO | NIIF_NOSOUND | NIIF_RESPECT_QUIET_TIME;
-    LoadString(NOTIFIER_HANDLE_INSTANCE, IDS_LOWINK_TITLE, nid.szInfoTitle, ARRAYSIZE(nid.szInfoTitle));
-    LoadString(NOTIFIER_HANDLE_INSTANCE, IDS_LOWINK_TEXT, nid.szInfo, ARRAYSIZE(nid.szInfo));
-    return Shell_NotifyIcon(NIM_MODIFY, &nid);
-}
-
-void show_context_menu(HWND hwnd, int x, int y) {
-    HMENU hMenu = LoadMenu(NOTIFIER_HANDLE_INSTANCE, MAKEINTRESOURCE(IDC_CONTEXTMENU));
-    if (hMenu) {
-        HMENU hSubMenu = GetSubMenu(hMenu, 0);
-        if (hSubMenu) {
-            // our window must be foreground before calling TrackPopupMenu or the menu will not disappear when the user clicks away
-            SetForegroundWindow(hwnd);
-
-            // respect menu drop alignment
-            UINT uFlags = TPM_RIGHTBUTTON;
-            if (GetSystemMetrics(SM_MENUDROPALIGNMENT) != 0) {
-                uFlags |= TPM_RIGHTALIGN;
-            }
-            else {
-                uFlags |= TPM_LEFTALIGN;
-            }
-
-            TrackPopupMenuEx(hSubMenu, uFlags, x, y, hwnd, NULL);
-        }
-        DestroyMenu(hMenu);
-    }
-}
-
-LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    switch (message) {
-    case WM_CREATE:
-        // add the notification icon
-        if (!add_notification(hwnd)) {
-            return -1;
-        }
-        break;
-    case WM_COMMAND: {
-            int const wmId = LOWORD(wParam);
-            // Parse the menu selections:
-            switch (wmId) {
-            case IDM_LOWINK:
-                break;
-
-            case IDM_NOINK:
-                break;
-
-            case IDM_PRINTJOB:
-                break;
-
-            case IDM_OPTIONS:
-                // placeholder for an options dialog
-                MessageBox(hwnd,  L"Display the options dialog here.", L"Options", MB_OK);
-                break;
-
-            case IDM_EXIT:
-                DestroyWindow(hwnd);
-                break;
-
-            case IDM_FLYOUT:
-                break;
-
-            default:
-                return DefWindowProc(hwnd, message, wParam, lParam);
-            }
-        }
-        break;
-
-    case WMAPP_NOTIFYCALLBACK:
-        switch (LOWORD(lParam)) {
-        case NIN_SELECT:
-            show_balloon();
-            break;
-        case NIN_BALLOONTIMEOUT:
-            break;
-
-        case NIN_BALLOONUSERCLICK:
-            // placeholder for the user clicking on the balloon.
-            MessageBox(hwnd, L"The user clicked on the balloon.", L"User click", MB_OK);
-            break;
-
-        case WM_CONTEXTMENU:
-            show_context_menu(hwnd, LOWORD(wParam), HIWORD(wParam));
-            break;
-        }
-        break;
-
-    case WM_TIMER:
-        break;
-    case WM_DESTROY:
-        delete_notification();
-        PostQuitMessage(0);
-        break;
-    default:
-        return DefWindowProc(hwnd, message, wParam, lParam);
     }
     return 0;
 }

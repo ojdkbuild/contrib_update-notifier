@@ -13,26 +13,12 @@ IDC_CONTEXTMENU MENU
 BEGIN
     POPUP ""
 	BEGIN
-	MENUITEM "Show Flyout", IDM_FLYOUT
-    MENUITEM "Options", IDM_OPTIONS
+	MENUITEM "Download Update", IDM_DOWNLOAD
+	MENUITEM "About", IDM_ABOUT
 	MENUITEM SEPARATOR
-	MENUITEM "E&xit", IDM_EXIT
+    MENUITEM "Cancel", IDM_CANCEL
+	// MENUITEM SEPARATOR
+    // MENUITEM "Disable Permanently", IDM_DISABLE
 	END
-END
-
-STRINGTABLE
-BEGIN
-   IDS_APP_TITLE       "NotificationIcon"
-   IDS_TOOLTIP         "Printer icon"
-
-   IDS_LOWINK_TITLE    "Low Ink"
-   IDS_LOWINK_TEXT     "The printer is low on ink and print quality m."
-
-   IDS_NOINK_TITLE     "No Ink"
-   IDS_NOINK_TEXT      "The printer is out of ink and unable to print."
-
-   IDS_PRINTJOB_TITLE  "Print job"
-   IDS_PRINTJOB_TEXT   "Your job has been sent to the printer."
-
 END
 
