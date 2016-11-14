@@ -70,3 +70,9 @@ add_executable ( notifier WIN32
 target_include_directories( notifier BEFORE PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/src
         ${checker_DEPS_PC_INCLUDE_DIRS} )
+
+target_link_libraries ( notifier
+        comctl32 )
+
+set_property ( TARGET notifier APPEND_STRING PROPERTY LINK_FLAGS
+        "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"" )

@@ -1,14 +1,5 @@
-// THIS CODE AND INFORMATION IS PROVIDED "AS IS" WITHOUT WARRANTY OF
-// ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO
-// THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
-// PARTICULAR PURPOSE.
-//
-// Copyright (c) Microsoft Corporation. All rights reserved
 
-// we need commctrl v6 for LoadIconMetric()
-#pragma comment(linker,"/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
-#pragma comment(lib, "comctl32.lib")
-
+#include <cstring>
 #include <string>
 
 #include "notifier.hpp"
@@ -19,43 +10,35 @@
 #include <commctrl.h>
 #include <strsafe.h>
 
-#include "platform.hpp"
+#include "utils.hpp"
 
-namespace cp = checker::platform;
+namespace utils = checker::utils;
 
-HINSTANCE g_hInst = NULL;
-
-UINT const WMAPP_NOTIFYCALLBACK = WM_APP + 1;
-
-
-wchar_t const szWindowClass[] = L"NotificationIconTest";
-
-// Use a guid to uniquely identify our icon
-class __declspec(uuid("9D0B8B92-4E1C-488e-A1E1-2331AFCE2CB5")) PrinterIcon;
+const UINT WMAPP_NOTIFYCALLBACK = WM_APP + 1;
+const std::wstring NOTIFIER_WINDOW_CLASS = utils::widen("notifier");
+HINSTANCE NOTIFIER_HANDLE_INSTANCE = NULL;
+class __declspec(uuid("7cf53058-6728-45bc-a0e6-1ed7629708bc")) NOTIFIER_ICON;
 
 // Forward declarations of functions included in this code module:
-void                RegisterWindowClass(PCWSTR pszClassName, PCWSTR pszMenuName, WNDPROC lpfnWndProc);
-LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-void                ShowContextMenu(HWND hwnd, POINT pt);
-BOOL                AddNotificationIcon(HWND hwnd);
-BOOL                DeleteNotificationIcon();
-BOOL                ShowLowInkBalloon();
-BOOL                ShowNoInkBalloon();
-BOOL                ShowPrintJobBalloon();
-BOOL                RestoreTooltip();
+LRESULT CALLBACK    window_callback(HWND, UINT, WPARAM, LPARAM);
+void                show_context_menu(HWND hwnd, POINT pt);
+BOOL                add_notification(HWND hwnd);
+BOOL                delete_notification();
 
-int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /* nCmdShow */)
-{
-    g_hInst = hInstance;
-    RegisterWindowClass(szWindowClass, MAKEINTRESOURCE(IDC_NOTIFICATIONICON), WndProc);
-
-    HWND hwnd = CreateWindowExW(0, szWindowClass, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
-    if (hwnd)
-    {
-        // Main message loop:
+int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /* nCmdShow */) {
+    NOTIFIER_HANDLE_INSTANCE = hInstance;
+    WNDCLASSEX wcex;
+    memset(&wcex, '\0', sizeof(wcex));
+    wcex.cbSize = sizeof(WNDCLASSEX);
+    wcex.lpfnWndProc = window_callback;
+    wcex.hInstance = NOTIFIER_HANDLE_INSTANCE;
+    wcex.hIcon = LoadIcon(NOTIFIER_HANDLE_INSTANCE, MAKEINTRESOURCE(IDI_NOTIFICATIONICON));
+    wcex.lpszClassName = NOTIFIER_WINDOW_CLASS.c_str();
+    RegisterClassExW(&wcex);
+    HWND hwnd = CreateWindowExW(0, NOTIFIER_WINDOW_CLASS.c_str(), NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
+    if (hwnd) {
         MSG msg;
-        while (GetMessage(&msg, NULL, 0, 0))
-        {
+        while (GetMessage(&msg, NULL, 0, 0)) {
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
@@ -63,117 +46,78 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /
     return 0;
 }
 
-void RegisterWindowClass(PCWSTR pszClassName, PCWSTR pszMenuName, WNDPROC lpfnWndProc)
-{
-    WNDCLASSEX wcex = {sizeof(wcex)};
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = lpfnWndProc;
-    wcex.hInstance      = g_hInst;
-    wcex.hIcon          = LoadIcon(g_hInst, MAKEINTRESOURCE(IDI_NOTIFICATIONICON));
-    wcex.hCursor        = LoadCursor(NULL, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = pszMenuName;
-    wcex.lpszClassName  = pszClassName;
-    RegisterClassEx(&wcex);
-}
-
-BOOL AddNotificationIcon(HWND hwnd)
-{
-    NOTIFYICONDATA nid = {sizeof(nid)};
+BOOL add_notification(HWND hwnd) {
+    NOTIFYICONDATA nid;
+    memset(&nid, '\0', sizeof(NOTIFYICONDATA));
+    nid.cbSize = sizeof(NOTIFYICONDATA);
     nid.hWnd = hwnd;
-    // add the icon, setting the icon, tooltip, and callback message.
-    // the icon will be identified with the GUID
-    nid.uFlags = NIF_INFO | NIF_ICON | NIF_TIP | NIF_MESSAGE | NIF_SHOWTIP | NIF_GUID;
-    nid.guidItem = __uuidof(PrinterIcon);
+    nid.uFlags = NIF_INFO | NIF_ICON | NIF_MESSAGE | NIF_SHOWTIP | NIF_GUID;
+    nid.guidItem = __uuidof(NOTIFIER_ICON);
     nid.uCallbackMessage = WMAPP_NOTIFYCALLBACK;
-    LoadIconMetric(g_hInst, MAKEINTRESOURCE(IDI_NOTIFICATIONICON), LIM_SMALL, &nid.hIcon);
-    LoadString(g_hInst, IDS_TOOLTIP, nid.szTip, ARRAYSIZE(nid.szTip));
+    LoadIconMetric(NOTIFIER_HANDLE_INSTANCE, MAKEINTRESOURCE(IDI_NOTIFICATIONICON), LIM_SMALL, &nid.hIcon);
     nid.dwInfoFlags = NIIF_INFO | NIIF_NOSOUND | NIIF_RESPECT_QUIET_TIME;
-    LoadString(g_hInst, IDS_LOWINK_TITLE, nid.szInfoTitle, ARRAYSIZE(nid.szInfoTitle));
-    LoadString(g_hInst, IDS_LOWINK_TEXT, nid.szInfo, ARRAYSIZE(nid.szInfo));
+    LoadString(NOTIFIER_HANDLE_INSTANCE, IDS_LOWINK_TITLE, nid.szInfoTitle, ARRAYSIZE(nid.szInfoTitle));
+    LoadString(NOTIFIER_HANDLE_INSTANCE, IDS_LOWINK_TEXT, nid.szInfo, ARRAYSIZE(nid.szInfo));
     Shell_NotifyIcon(NIM_ADD, &nid);
-
-    // NOTIFYICON_VERSION_4 is prefered
     nid.uVersion = NOTIFYICON_VERSION_4;
     return Shell_NotifyIcon(NIM_SETVERSION, &nid);
 }
 
-BOOL DeleteNotificationIcon()
-{
-    NOTIFYICONDATA nid = {sizeof(nid)};
+BOOL delete_notification() {
+    NOTIFYICONDATA nid;
+    memset(&nid, '\0', sizeof(NOTIFYICONDATA));
     nid.uFlags = NIF_GUID;
-    nid.guidItem = __uuidof(PrinterIcon);
+    nid.guidItem = __uuidof(NOTIFIER_ICON);
     return Shell_NotifyIcon(NIM_DELETE, &nid);
 }
 
-BOOL ShowBalloon()
-{
-    NOTIFYICONDATA nid = {sizeof(nid)};
+BOOL show_balloon() {
+    NOTIFYICONDATA nid;
+    memset(&nid, '\0', sizeof(NOTIFYICONDATA));
+    nid.cbSize = sizeof(NOTIFYICONDATA);
     nid.uFlags = NIF_INFO | NIF_GUID;
-    nid.guidItem = __uuidof(PrinterIcon);
+    nid.guidItem = __uuidof(NOTIFIER_ICON);
     nid.dwInfoFlags = NIIF_INFO | NIIF_NOSOUND | NIIF_RESPECT_QUIET_TIME;
-    LoadString(g_hInst, IDS_LOWINK_TITLE, nid.szInfoTitle, ARRAYSIZE(nid.szInfoTitle));
-    LoadString(g_hInst, IDS_LOWINK_TEXT, nid.szInfo, ARRAYSIZE(nid.szInfo));
+    LoadString(NOTIFIER_HANDLE_INSTANCE, IDS_LOWINK_TITLE, nid.szInfoTitle, ARRAYSIZE(nid.szInfoTitle));
+    LoadString(NOTIFIER_HANDLE_INSTANCE, IDS_LOWINK_TEXT, nid.szInfo, ARRAYSIZE(nid.szInfo));
     return Shell_NotifyIcon(NIM_MODIFY, &nid);
 }
 
-BOOL RestoreTooltip()
-{
-    // After the balloon is dismissed, restore the tooltip.
-    NOTIFYICONDATA nid = {sizeof(nid)};
-    nid.uFlags = NIF_SHOWTIP | NIF_GUID;
-    nid.guidItem = __uuidof(PrinterIcon);
-    return Shell_NotifyIcon(NIM_MODIFY, &nid);
-}
-
-void ShowContextMenu(HWND hwnd, POINT pt)
-{
-    HMENU hMenu = LoadMenu(g_hInst, MAKEINTRESOURCE(IDC_CONTEXTMENU));
-    if (hMenu)
-    {
+void show_context_menu(HWND hwnd, int x, int y) {
+    HMENU hMenu = LoadMenu(NOTIFIER_HANDLE_INSTANCE, MAKEINTRESOURCE(IDC_CONTEXTMENU));
+    if (hMenu) {
         HMENU hSubMenu = GetSubMenu(hMenu, 0);
-        if (hSubMenu)
-        {
+        if (hSubMenu) {
             // our window must be foreground before calling TrackPopupMenu or the menu will not disappear when the user clicks away
             SetForegroundWindow(hwnd);
 
             // respect menu drop alignment
             UINT uFlags = TPM_RIGHTBUTTON;
-            if (GetSystemMetrics(SM_MENUDROPALIGNMENT) != 0)
-            {
+            if (GetSystemMetrics(SM_MENUDROPALIGNMENT) != 0) {
                 uFlags |= TPM_RIGHTALIGN;
             }
-            else
-            {
+            else {
                 uFlags |= TPM_LEFTALIGN;
             }
 
-            TrackPopupMenuEx(hSubMenu, uFlags, pt.x, pt.y, hwnd, NULL);
+            TrackPopupMenuEx(hSubMenu, uFlags, x, y, hwnd, NULL);
         }
         DestroyMenu(hMenu);
     }
 }
 
-LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-    switch (message)
-    {
+LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+    switch (message) {
     case WM_CREATE:
         // add the notification icon
-        if (!AddNotificationIcon(hwnd))
-        {
-            MessageBox(hwnd,
-                L"Please read the ReadMe.txt file for troubleshooting",
-                L"Error adding icon", MB_OK);
+        if (!add_notification(hwnd)) {
             return -1;
         }
         break;
-    case WM_COMMAND:
-        {
+    case WM_COMMAND: {
             int const wmId = LOWORD(wParam);
             // Parse the menu selections:
-            switch (wmId)
-            {
+            switch (wmId) {
             case IDM_LOWINK:
                 break;
 
@@ -202,28 +146,20 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WMAPP_NOTIFYCALLBACK:
-        switch (LOWORD(lParam))
-        {
+        switch (LOWORD(lParam)) {
         case NIN_SELECT:
-            // for NOTIFYICON_VERSION_4 clients, NIN_SELECT is prerable to listening to mouse clicks and key presses
-            // directly.
-            ShowBalloon();
+            show_balloon();
             break;
         case NIN_BALLOONTIMEOUT:
-            RestoreTooltip();
             break;
 
         case NIN_BALLOONUSERCLICK:
-            RestoreTooltip();
             // placeholder for the user clicking on the balloon.
             MessageBox(hwnd, L"The user clicked on the balloon.", L"User click", MB_OK);
             break;
 
         case WM_CONTEXTMENU:
-            {
-                POINT const pt = { LOWORD(wParam), HIWORD(wParam) };
-                ShowContextMenu(hwnd, pt);
-            }
+            show_context_menu(hwnd, LOWORD(wParam), HIWORD(wParam));
             break;
         }
         break;
@@ -231,7 +167,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
     case WM_TIMER:
         break;
     case WM_DESTROY:
-        DeleteNotificationIcon();
+        delete_notification();
         PostQuitMessage(0);
         break;
     default:
