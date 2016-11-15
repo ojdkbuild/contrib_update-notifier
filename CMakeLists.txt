@@ -23,8 +23,10 @@ project ( update_notifier C CXX )
 set ( ${PROJECT_NAME}_ICON_PATH "${OJDKBUILD_DIR}/resources/installer/instres/icon.ico" CACHE STRING "Path to icon file" )
 set ( ${PROJECT_NAME}_TOOLTIP_LABEL "ojdkbuild update" CACHE STRING "Notification area tooltip" )
 set ( ${PROJECT_NAME}_BALLOON_TITLE_LABEL "ojdkbuild update available" CACHE STRING "Notification balloon title" )
-set ( ${PROJECT_NAME}_ABOUT_TITLE_LABEL "About ojdkbuild updates" CACHE STRING "About dialog title" )
-set ( ${PROJECT_NAME}_UPDATE_TITLE_LABEL "Update ojdkbuild" CACHE STRING "Update dialog title" )
+set ( ${PROJECT_NAME}_ABOUT_TITLE_LABEL "About ojdkbuild updates" CACHE STRING "'About' dialog title" )
+set ( ${PROJECT_NAME}_ABOUT_HEADER_LABEL "About ojdkbuild header" CACHE STRING "'About' dialog header" )
+set ( ${PROJECT_NAME}_ABOUT_TEXT_LABEL "About ojdkbuild text" CACHE STRING "'About' dialog text" )
+set ( ${PROJECT_NAME}_UPDATE_TITLE_LABEL "Update ojdkbuild" CACHE STRING "'Update' dialog title" )
 set ( ${PROJECT_NAME}_BROWSER_URL "https://github.com/ojdkbuild/ojdkbuild#downloads-for-windows-x86_64" CACHE STRING "URL to open in browser" )
 set ( ${PROJECT_NAME}_DOWNLOAD_LABEL "Download" CACHE STRING "'Download' menu label" )
 set ( ${PROJECT_NAME}_ABOUT_LABEL "About" CACHE STRING "'About' menu label" )
@@ -71,19 +73,28 @@ file ( COPY ${CMAKE_CURRENT_LIST_DIR}/resources/checker_config.json
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
 
 # notifier
+# dependencies
+set ( notifier_DEPS jansson )
+ojdkbuild_pkg_check_modules ( notifier_DEPS_PC REQUIRED notifier_DEPS )
+
 configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/notifier.rc
         ${CMAKE_CURRENT_BINARY_DIR}/notifier.rc )
 
 add_executable ( notifier WIN32
-        src/utils.cpp
         src/notifier.cpp
+        src/FileDescriptor.cpp
+        src/JsonRecord.cpp
+        src/jsonio.cpp
+        src/platform_windows.cpp
+        src/utils.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/notifier.rc )
 
 target_include_directories( notifier BEFORE PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/src
-        ${checker_DEPS_PC_INCLUDE_DIRS} )
+        ${notifier_DEPS_PC_INCLUDE_DIRS} )
 
 target_link_libraries ( notifier
+        lookaside_jansson
         comctl32 )
 
 set_property ( TARGET notifier APPEND_STRING PROPERTY LINK_FLAGS

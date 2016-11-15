@@ -32,6 +32,9 @@ public:
     std::string os_arch;
     std::string version_string;
     uint32_t version_number;
+    std::string ui_balloon_text;
+    std::string ui_update_header;
+    std::string ui_update_text;
 
     Version() :
     version_number(0) { }
@@ -42,7 +45,10 @@ public:
     os_name(json.get_string("os_name")),
     os_arch(json.get_string("os_arch")),
     version_string(json.get_string("version_string")),
-    version_number(json.get_uint32("version_number")) { }
+    version_number(json.get_uint32("version_number")),
+    ui_balloon_text(json.get_string("ui_balloon_text")),
+    ui_update_header(json.get_string("ui_update_header")),
+    ui_update_text(json.get_string("ui_update_text")) { }
     
     JsonRecord to_json() {
         JsonRecord json;
@@ -52,6 +58,9 @@ public:
         json.put_string("os_arch", os_arch);
         json.put_string("version_string", version_string);
         json.put_uint32("version_number", version_number);
+        json.put_string("ui_balloon_text", ui_balloon_text);
+        json.put_string("ui_update_header", ui_update_header);
+        json.put_string("ui_update_text", ui_update_text);
         return json;
     }
 };

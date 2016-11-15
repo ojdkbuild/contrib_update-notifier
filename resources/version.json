@@ -4,5 +4,8 @@
     "os_name": "Windows",
     "os_arch": "x86_64",
     "version_string": "1.8.0.111-1.b15",
-    "version_number": 1801113
+    "version_number": 1801115,
+    "ui_balloon_text": "OpenJDK version 1.8.0.111-1.b15 is available for download\n\nmore text",
+    "ui_update_header": "OpenJDK version 1.8.0.111-1.b15 is available for download",
+    "ui_update_text": "more text\n\neven more text"
 }
