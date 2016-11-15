@@ -1,0 +1,9 @@
+#define UNICODE
+#define _UNICODE
+#include "windows.h"
+
+LANGUAGE 9, 1
+#pragma code_page(1252)
+
+IDI_NOTIFICATIONICON ICON "${${PROJECT_NAME}_ICON_PATH}"
+
