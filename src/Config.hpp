@@ -25,7 +25,6 @@ public:
     uint32_t max_path_length;
     std::string vendor_name;
     std::string application_name;
-    std::string work_directory;
     
     // curl general behavior options
     uint32_t curl_max_connects;
@@ -100,7 +99,6 @@ public:
     max_path_length(json.get_uint32("max_path_length", 1 << 10)),
     vendor_name(json.get_string("vendor_name", "ojdkbuild")),
     application_name(json.get_string("application_name", "update_checker")),
-    work_directory(json.get_string("work_directory", ".")),
     
     curl_max_connects(json.get_uint32("curl_max_connects", 1)), 
     curl_max_bufsize_bytes(json.get_uint32("curl_max_bufsize_bytes", 1 << 15)),
@@ -131,11 +129,7 @@ public:
     curl_ssl_verifypeer(json.get_bool("curl_ssl_verifypeer", true)),
     curl_cainfo_filename(json.get_string("curl_cainfo_filename")),
     curl_crlfile_filename(json.get_string("curl_crlfile_filename")),
-    curl_ssl_cipher_list(json.get_string("curl_ssl_cipher_list"))
-    
-    { 
-        // todo: parse headers
-    }
+    curl_ssl_cipher_list(json.get_string("curl_ssl_cipher_list")) { }
 };
 
 } // namespace

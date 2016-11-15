@@ -25,6 +25,7 @@ class __declspec(uuid("7cf53058-6728-45bc-a0e6-1ed7629708bc")) NOTIFIER_ICON;
 const std::wstring NOTIFIER_WINDOW_CLASS = L"e48e2be7-451e-48e5-8889-8c97c1485340";
 const UINT WMAPP_NOTIFYCALLBACK = WM_APP + 1;
 const size_t NOTIFIER_MAX_RC_LEN = 1 << 12;
+const size_t NOTIFIER_MAX_INPUT_JSON_LEN = 1 << 15;
 HINSTANCE NOTIFIER_HANDLE_INSTANCE = NULL;
 // loaded on startup
 std::wstring NOTIFIER_BALLOON_TEXT;
@@ -32,8 +33,7 @@ std::wstring NOTIFIER_UPDATE_HEADER;
 std::wstring NOTIFIER_UPDATE_TEXT;
 // we should be fine without sync in STA mode
 State NOTIFIER_STATE = STATE_STANDBY;
-// todo settings
-const std::string NOTIFIER_VERSION_JSON_PATH = "C:/tmp//version.json";
+
 
 std::wstring load_resource_string(UINT id) {
     std::wstring str;
@@ -47,9 +47,12 @@ std::wstring load_resource_string(UINT id) {
     }
 }
 
-BOOL load_json(const std::string& path) {
+BOOL load_input_json() {
     try {
-        ch::JsonRecord json = ch::read_from_file(path, 1 << 15);
+        std::string exepath = ch::platform::current_executable_path();
+        std::string dirpath = ch::utils::strip_filename(exepath);
+        std::string path = dirpath + "version.json";
+        ch::JsonRecord json = ch::read_from_file(path, NOTIFIER_MAX_INPUT_JSON_LEN);
         ch::Version ver(json);
         NOTIFIER_BALLOON_TEXT = ch::utils::widen(ver.ui_balloon_text);
         NOTIFIER_UPDATE_HEADER = ch::utils::widen(ver.ui_update_header);
@@ -214,7 +217,7 @@ LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /* nCmdShow */) {
     // fill globals
     NOTIFIER_HANDLE_INSTANCE = hInstance;
-    if (!(load_json(NOTIFIER_VERSION_JSON_PATH))) {
+    if (!(load_input_json())) {
         return 1;
     }
     // create ui

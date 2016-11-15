@@ -99,7 +99,7 @@ std::string resolve_config_path(Options& opts) {
     }
     std::string exepath = ch::platform::current_executable_path();
     std::string dirpath = ch::utils::strip_filename(exepath);
-    return dirpath + "checker_config.json";
+    return dirpath + "config.json";
 }
 
 
@@ -111,7 +111,9 @@ std::string resolve_version_path(const checker::Config& cf) {
     // std::string appdir = vendor_dir + "/" + cf.application_name;
     // ch::platform::create_directory(appdir);
     // return appdir + "/" + cf.version_filename;
-    return cf.work_directory + "/" + cf.version_filename;
+    std::string exepath = ch::platform::current_executable_path();
+    std::string dirpath = ch::utils::strip_filename(exepath);
+    return dirpath + "version.json";
 }
 
 checker::Version load_local_version(const checker::Config& cf, const std::string& verpath) {

@@ -40,6 +40,7 @@ ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/curl )
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/popt )
 
 # checker
+
 # dependencies
 set ( checker_DEPS zlib_static jansson openssl curl popt )
 ojdkbuild_pkg_check_modules ( checker_DEPS_PC REQUIRED checker_DEPS )
@@ -68,11 +69,12 @@ target_link_libraries ( checker
 
 target_compile_options ( checker PRIVATE ${checker_DEPS_PC_CFLAGS} )
 
-# todo: fixme
-file ( COPY ${CMAKE_CURRENT_LIST_DIR}/resources/checker_config.json
-        DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
+configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/config.json
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/config.json )
+
 
 # notifier
+
 # dependencies
 set ( notifier_DEPS jansson )
 ojdkbuild_pkg_check_modules ( notifier_DEPS_PC REQUIRED notifier_DEPS )

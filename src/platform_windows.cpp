@@ -42,7 +42,7 @@ void close_file(FILE* file) {
 }
 
 std::string get_userdata_directory(const Config& cf) {
-    return cf.work_directory; 
+    throw CheckerException("Unsupported operation: [get_userdata_directory]");
 }
 
 void create_directory(const std::string& dirpath) {
