@@ -19,16 +19,10 @@ enum State { STATE_STANDBY, STATE_ABOUT, STATE_UPDATE };
 class __declspec(uuid("7cf53058-6728-45bc-a0e6-1ed7629708bc")) NOTIFIER_ICON;
 const std::wstring NOTIFIER_WINDOW_CLASS = L"e48e2be7-451e-48e5-8889-8c97c1485340";
 const UINT WMAPP_NOTIFYCALLBACK = WM_APP + 1;
+const size_t NOTIFIER_MAX_RC_LEN = 256;
 HINSTANCE NOTIFIER_HANDLE_INSTANCE = NULL;
 // we should be fine without sync in STA mode
 State NOTIFIER_STATE = STATE_STANDBY;
-
-// todo: -> .rc
-const std::wstring NOTIFIER_TOOLTIP = utils::widen("ojdkbuild update");
-const std::wstring NOTIFIER_BALLOON_TITLE = utils::widen("ojdkbuild update title");
-const std::wstring NOTIFIER_ABOUT_TITLE = utils::widen("About ojdkbuild Update Notifier");
-const std::wstring NOTIFIER_UPDATE_TITLE = utils::widen("ojdkbuild Update");
-const std::wstring NOTIFIER_URL = utils::widen("https://github.com/ojdkbuild/ojdkbuild#downloads-for-windows-x86_64");
 
 // todo: -> .json
 const std::wstring NOTIFIER_BALLOON_TEXT = utils::widen("ojdkbuild update text");
@@ -46,10 +40,10 @@ BOOL add_notification(HWND hwnd) {
     nid.guidItem = __uuidof(NOTIFIER_ICON);
     nid.uCallbackMessage = WMAPP_NOTIFYCALLBACK;
     LoadIconMetric(NOTIFIER_HANDLE_INSTANCE, MAKEINTRESOURCE(IDI_NOTIFICATIONICON), LIM_SMALL, &nid.hIcon);
-    wcscpy_s(nid.szTip, 128, NOTIFIER_TOOLTIP.c_str());
+    LoadStringW(NOTIFIER_HANDLE_INSTANCE, IDS_TOOLTIP, nid.szTip, ARRAYSIZE(nid.szTip));
     nid.dwInfoFlags = NIIF_INFO | NIIF_NOSOUND | NIIF_RESPECT_QUIET_TIME;
-    wcscpy_s(nid.szInfoTitle, 64, NOTIFIER_BALLOON_TITLE.c_str());
-    wcscpy_s(nid.szInfo, 256, NOTIFIER_BALLOON_TEXT.c_str());
+    LoadStringW(NOTIFIER_HANDLE_INSTANCE, IDS_BALLOON_TITLE, nid.szInfoTitle, ARRAYSIZE(nid.szInfoTitle));
+    wcscpy_s(nid.szInfo, ARRAYSIZE(nid.szInfo), NOTIFIER_BALLOON_TEXT.c_str());
     Shell_NotifyIcon(NIM_ADD, &nid);
     nid.uVersion = NOTIFYICON_VERSION_4;
     return Shell_NotifyIcon(NIM_SETVERSION, &nid);
@@ -94,7 +88,10 @@ void show_context_menu(HWND hwnd, int x, int y) {
 }
 
 void open_browser() {
-    ShellExecuteW(NULL, NULL, NOTIFIER_URL.c_str(), NULL, NULL, SW_SHOW);
+    std::wstring url;
+    url.resize(NOTIFIER_MAX_RC_LEN);
+    LoadStringW(NOTIFIER_HANDLE_INSTANCE, IDS_BROWSER_URL, &url.front(), url.length());
+    ShellExecuteW(NULL, NULL, url.c_str(), NULL, NULL, SW_SHOW);
 }
 
 void show_about_dialog(HWND hwnd) {
@@ -102,7 +99,10 @@ void show_about_dialog(HWND hwnd) {
         return;
     }
     NOTIFIER_STATE = STATE_ABOUT;
-    TaskDialog(hwnd, NOTIFIER_HANDLE_INSTANCE, NOTIFIER_ABOUT_TITLE.c_str(), NOTIFIER_ABOUT_HEADER.c_str(),
+    std::wstring title;
+    title.resize(NOTIFIER_MAX_RC_LEN);
+    LoadStringW(NOTIFIER_HANDLE_INSTANCE, IDS_ABOUT_TITLE, &title.front(), title.length());
+    TaskDialog(hwnd, NOTIFIER_HANDLE_INSTANCE, title.c_str(), NOTIFIER_ABOUT_HEADER.c_str(),
             NOTIFIER_ABOUT_TEXT.c_str(), TDCBF_CLOSE_BUTTON,
             MAKEINTRESOURCE(IDI_NOTIFICATIONICON), NULL);
     NOTIFIER_STATE = STATE_STANDBY;
@@ -114,7 +114,10 @@ void show_update_dialog(HWND hwnd) {
     }
     NOTIFIER_STATE = STATE_UPDATE;
     int chosen = 0;
-    TaskDialog(hwnd, NOTIFIER_HANDLE_INSTANCE, NOTIFIER_UPDATE_TITLE.c_str(), NOTIFIER_UPDATE_HEADER.c_str(),
+    std::wstring title;
+    title.resize(NOTIFIER_MAX_RC_LEN);
+    LoadStringW(NOTIFIER_HANDLE_INSTANCE, IDS_UPDATE_TITLE, &title.front(), title.length());
+    TaskDialog(hwnd, NOTIFIER_HANDLE_INSTANCE, title.c_str(), NOTIFIER_UPDATE_HEADER.c_str(),
             NOTIFIER_UPDATE_TEXT.c_str(), TDCBF_YES_BUTTON | TDCBF_CANCEL_BUTTON,
             MAKEINTRESOURCE(IDI_NOTIFICATIONICON), &chosen);
     if (IDYES == chosen) {
@@ -141,7 +144,6 @@ LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 show_about_dialog(hwnd);
                 break;
             case IDM_CANCEL:
-            case IDM_DISABLE:
                 DestroyWindow(hwnd);
                 break;
             default:

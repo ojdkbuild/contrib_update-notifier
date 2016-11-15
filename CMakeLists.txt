@@ -20,6 +20,15 @@ include ( ${OJDKBUILD_DIR}/resources/cmake/ojdkbuild_common.cmake )
 project ( update_notifier C CXX )
 
 # options
+set ( ${PROJECT_NAME}_ICON_PATH "${OJDKBUILD_DIR}/resources/installer/instres/icon.ico" CACHE STRING "Path to icon file" )
+set ( ${PROJECT_NAME}_TOOLTIP_LABEL "ojdkbuild update" CACHE STRING "Notification area tooltip" )
+set ( ${PROJECT_NAME}_BALLOON_TITLE_LABEL "ojdkbuild update available" CACHE STRING "Notification balloon title" )
+set ( ${PROJECT_NAME}_ABOUT_TITLE_LABEL "About ojdkbuild updates" CACHE STRING "About dialog title" )
+set ( ${PROJECT_NAME}_UPDATE_TITLE_LABEL "Update ojdkbuild" CACHE STRING "Update dialog title" )
+set ( ${PROJECT_NAME}_BROWSER_URL "https://github.com/ojdkbuild/ojdkbuild#downloads-for-windows-x86_64" CACHE STRING "URL to open in browser" )
+set ( ${PROJECT_NAME}_DOWNLOAD_LABEL "Download" CACHE STRING "'Download' menu label" )
+set ( ${PROJECT_NAME}_ABOUT_LABEL "About" CACHE STRING "'About' menu label" )
+set ( ${PROJECT_NAME}_CANCEL_LABEL "Cancel" CACHE STRING "'Cancel' menu label" )
 
 # static libraries
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/zlib )
@@ -62,10 +71,13 @@ file ( COPY ${CMAKE_CURRENT_LIST_DIR}/resources/checker_config.json
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR} )
 
 # notifier
+configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/notifier.rc
+        ${CMAKE_CURRENT_BINARY_DIR}/notifier.rc )
+
 add_executable ( notifier WIN32
         src/utils.cpp
         src/notifier.cpp
-        src/notifier.rc )
+        ${CMAKE_CURRENT_BINARY_DIR}/notifier.rc )
 
 target_include_directories( notifier BEFORE PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/src
