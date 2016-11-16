@@ -7,6 +7,10 @@
 
 #include "utils.hpp"
 
+#include <cstdlib>
+#include <cerrno>
+#include <climits>
+
 #ifdef _WIN32
 #define UNICODE
 #define _UNICODE
@@ -24,6 +28,21 @@ std::string strip_filename(const std::string& file_path) {
         return std::string(file_path.data(), pos + 1);
     }
     return std::string(file_path.data(), file_path.length());
+}
+
+uint32_t parse_uint32(const std::string& str) {
+    const char* cstr = str.c_str();
+    char* endptr;
+    errno = 0;
+    // no strtoll in vs2010
+    long l = strtol(cstr, &endptr, 0);
+    if (errno == ERANGE || cstr + str.length() != endptr) {
+        throw CheckerException(std::string() + "Cannot parse uint32_t from string: [" + str + "]");
+    }
+    if (l < 0 || l > UINT_MAX) {
+        throw CheckerException(std::string() + "Value overflow for uint32_t from string: [" + str + "]");
+    }
+    return static_cast<uint32_t> (l);
 }
 
 #ifdef _WIN32

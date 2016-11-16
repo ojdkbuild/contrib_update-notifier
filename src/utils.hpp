@@ -26,7 +26,7 @@ std::string to_string(const T& obj) {
 
 std::string strip_filename(const std::string& file_path);
 
-std::string current_datetime();
+uint32_t parse_uint32(const std::string& str);
 
 #ifdef _WIN32
 

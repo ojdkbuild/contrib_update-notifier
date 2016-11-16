@@ -57,7 +57,10 @@ BOOL load_input_json() {
         NOTIFIER_BALLOON_TEXT = ch::utils::widen(ver.ui_balloon_text);
         NOTIFIER_UPDATE_HEADER = ch::utils::widen(ver.ui_update_header);
         NOTIFIER_UPDATE_TEXT = ch::utils::widen(ver.ui_update_text);
-        return true;
+        std::wstring vnumwstr = load_resource_string(IDS_SHIPPED_VERSION_NUMBER);
+        std::string vnumstr = ch::utils::narrow(vnumwstr);
+        uint32_t vnum = ch::utils::parse_uint32(vnumstr);
+        return ver.version_number > vnum;
     } catch (const std::exception& e) {
         return false;
     }
