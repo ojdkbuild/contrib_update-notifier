@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
                     std::endl;
         }
     } catch(const std::exception& e) {
-        std::cerr << "ERROR: " << e.what() << std::endl;
+        std::cerr << ch::platform::current_datetime() << " ERROR: " << e.what() << std::endl;
         return 1;
     }
     

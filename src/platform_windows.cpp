@@ -68,7 +68,9 @@ std::string current_datetime() {
     time_t cur = time(NULL);
     struct tm time;
     localtime_s(&time, &cur);
-    return std::string(asctime(&time));
+    char tmpbuf[128];
+    strftime(tmpbuf, 128, "%Y-%m-%d_%H:%M:%S", &time);
+    return std::string(tmpbuf);
 }
 
 } // namespace
