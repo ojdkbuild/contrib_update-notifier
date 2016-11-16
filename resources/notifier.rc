@@ -9,6 +9,31 @@ LANGUAGE 9, 1
 
 IDI_NOTIFICATIONICON ICON "${${PROJECT_NAME}_ICON_PATH}"
 
+1 VERSIONINFO
+FILEVERSION     ${${PROJECT_NAME}_EXE_VERSION}
+PRODUCTVERSION  ${${PROJECT_NAME}_EXE_VERSION}
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904E4"
+        BEGIN
+            VALUE "CompanyName", "${${PROJECT_NAME}_COMPANY_NAME_LABEL}"
+            VALUE "FileDescription", "Update Notifier Application"
+            VALUE "FileVersion", "${${PROJECT_NAME}_FILE_VERSION}"
+            VALUE "InternalName", "notifier"
+            VALUE "LegalCopyright", "${${PROJECT_NAME}_COMPANY_NAME_LABEL}"
+            VALUE "OriginalFilename", "notifier.exe"
+            VALUE "ProductName", "Update Notifier Application"
+            VALUE "ProductVersion", "${${PROJECT_NAME}_PRODUCT_VERSION}"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x0409, 0x04E4
+    END
+END
+1 RT_MANIFEST "${${PROJECT_NAME}_NOTIFIER_MANIFEST_PATH}"
+
 IDC_CONTEXTMENU MENU
 BEGIN
     POPUP ""

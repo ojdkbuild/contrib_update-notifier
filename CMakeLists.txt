@@ -18,6 +18,7 @@ cmake_minimum_required ( VERSION 2.8.12 )
 set ( OJDKBUILD_DIR ${CMAKE_CURRENT_LIST_DIR}/../.. CACHE INTERNAL "" )
 include ( ${OJDKBUILD_DIR}/resources/cmake/ojdkbuild_common.cmake )
 project ( update_notifier C CXX )
+include ( ${OJDKBUILD_DIR}/resources/cmake/version.cmake )
 
 # options
 set ( ${PROJECT_NAME}_ICON_PATH "${OJDKBUILD_DIR}/resources/installer/instres/icon.ico" CACHE STRING "Path to icon file" )
@@ -31,6 +32,12 @@ set ( ${PROJECT_NAME}_BROWSER_URL "https://github.com/ojdkbuild/ojdkbuild#downlo
 set ( ${PROJECT_NAME}_DOWNLOAD_LABEL "Download" CACHE STRING "'Download' menu label" )
 set ( ${PROJECT_NAME}_ABOUT_LABEL "About" CACHE STRING "'About' menu label" )
 set ( ${PROJECT_NAME}_CANCEL_LABEL "Cancel" CACHE STRING "'Cancel' menu label" )
+set ( ${PROJECT_NAME}_EXE_VERSION "1,${${PROJECT_NAME}_MAJOR_VERSION},${${PROJECT_NAME}_UPDATE}${${PROJECT_NAME}_RPMBUILD},${${PROJECT_NAME}_BUILD}" CACHE STRING "EXE version field" )
+set ( ${PROJECT_NAME}_FILE_VERSION "1.${${PROJECT_NAME}_MAJOR_VERSION}.0.${${PROJECT_NAME}_UPDATE}.${${PROJECT_NAME}_RPMBUILD}" CACHE STRING "File version field" )
+set ( ${PROJECT_NAME}_COMPANY_NAME_LABEL "${${PROJECT_NAME}_VENDOR}" CACHE STRING "Company name version field" )
+set ( ${PROJECT_NAME}_PRODUCT_VERSION "${${PROJECT_NAME}_FILE_VERSION}" CACHE STRING "Product version field" )
+set ( ${PROJECT_NAME}_CHECKER_MANIFEST_PATH ${CMAKE_CURRENT_LIST_DIR}/resources/checker.manifest CACHE STRING "Path to checker manifest" )
+set ( ${PROJECT_NAME}_NOTIFIER_MANIFEST_PATH ${CMAKE_CURRENT_LIST_DIR}/resources/notifier.manifest CACHE STRING "Path to notifier manifest" )
 
 # static libraries
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/zlib )
@@ -38,6 +45,7 @@ ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/jansson )
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/openssl )
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/curl )
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/popt )
+
 
 # checker
 
@@ -75,6 +83,8 @@ target_link_libraries ( checker
 
 target_compile_options ( checker PRIVATE ${checker_DEPS_PC_CFLAGS} )
 
+set_property ( TARGET checker APPEND_STRING PROPERTY LINK_FLAGS "/manifest:no" )
+
 
 # notifier
 
@@ -102,5 +112,4 @@ target_link_libraries ( notifier
         lookaside_jansson
         comctl32 )
 
-set_property ( TARGET notifier APPEND_STRING PROPERTY LINK_FLAGS
-        "/manifestdependency:\"type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"" )
+set_property ( TARGET notifier APPEND_STRING PROPERTY LINK_FLAGS "/manifest:no" )
