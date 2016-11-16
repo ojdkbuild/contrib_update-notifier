@@ -38,6 +38,9 @@ set ( ${PROJECT_NAME}_COMPANY_NAME_LABEL "${${PROJECT_NAME}_VENDOR}" CACHE STRIN
 set ( ${PROJECT_NAME}_PRODUCT_VERSION "${${PROJECT_NAME}_FILE_VERSION}" CACHE STRING "Product version field" )
 set ( ${PROJECT_NAME}_CHECKER_MANIFEST_PATH ${CMAKE_CURRENT_LIST_DIR}/resources/checker.manifest CACHE STRING "Path to checker manifest" )
 set ( ${PROJECT_NAME}_NOTIFIER_MANIFEST_PATH ${CMAKE_CURRENT_LIST_DIR}/resources/notifier.manifest CACHE STRING "Path to notifier manifest" )
+# deps options
+set ( ojdkbuild_zlib_ENABLE_STATIC ON CACHE BOOL "")
+set ( ojdkbuild_zlib_ENABLE_SHARED OFF CACHE BOOL "")
 
 # static libraries
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/zlib )
@@ -55,7 +58,7 @@ configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/config.json
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/config.json )
 
 # dependencies
-set ( checker_DEPS zlib_static jansson openssl curl popt )
+set ( checker_DEPS zlib jansson openssl curl popt )
 ojdkbuild_pkg_check_modules ( checker_DEPS_PC REQUIRED checker_DEPS )
 
 # executable
