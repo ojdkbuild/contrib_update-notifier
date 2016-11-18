@@ -27,7 +27,7 @@ FileDescriptor open_file(const std::string& filepath, const std::string& mode, u
 
 void close_file(FILE* file);
 
-std::string get_userdata_directory(const Config& cf);
+std::string get_userdata_directory();
 
 void create_directory(const std::string& dirpath);
 

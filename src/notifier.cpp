@@ -49,9 +49,10 @@ std::wstring load_resource_string(UINT id) {
 
 bool load_input_json() {
     try {
-        std::string exepath = ch::platform::current_executable_path();
-        std::string dirpath = ch::utils::strip_filename(exepath);
-        std::string path = dirpath + "version.json";
+        std::string appdatadir = ch::platform::get_userdata_directory();
+        std::string vendorname = ch::utils::narrow(load_resource_string(IDS_VENDOR_DIRNAME));
+        std::string appname = ch::utils::narrow(load_resource_string(IDS_APP_DIRNAME));
+        std::string path = appdatadir + vendorname + "/" + appname + "/version.json";
         ch::JsonRecord json = ch::read_from_file(path, NOTIFIER_MAX_INPUT_JSON_LEN);
         ch::Version ver(json);
         NOTIFIER_BALLOON_TEXT = ch::utils::widen(ver.ui_balloon_text);

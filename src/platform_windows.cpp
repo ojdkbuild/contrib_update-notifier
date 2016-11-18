@@ -9,15 +9,44 @@
 
 #include <cstdint>
 #include <ctime>
+#include <algorithm>
 #include <string>
 
 #include <windows.h>
+#include <shlobj.h>
 
 #include "CheckerException.hpp"
 #include "utils.hpp"
 
 namespace checker {
 namespace platform {
+
+namespace { // anonymous
+
+class WCharCoBuffer {
+    wchar_t* buffer;
+
+public:
+    WCharCoBuffer(wchar_t* buffer):
+    buffer(buffer) { }
+
+    ~WCharCoBuffer() {
+        if (buffer) {
+            CoTaskMemFree(buffer);
+        }
+    }
+
+    wchar_t* get() {
+        return buffer;
+    }
+
+private:
+    WCharCoBuffer(const WCharCoBuffer& other);
+    
+    WCharCoBuffer& operator=(const WCharCoBuffer& other);
+};
+
+} // namespace
 
 
 bool file_exists(const std::string& filepath) {
@@ -41,12 +70,26 @@ void close_file(FILE* file) {
     fclose(file);
 }
 
-std::string get_userdata_directory(const Config& cf) {
-    throw CheckerException("Unsupported operation: [get_userdata_directory]");
+std::string get_userdata_directory() {
+    wchar_t* wpath = NULL;
+    HRESULT err = SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_CREATE, NULL, &wpath);
+    if (S_OK != err) {
+        throw CheckerException(std::string() + "Error getting userdata dir");
+    }
+    WCharCoBuffer buf(wpath);
+    std::string path = utils::narrow(buf.get());
+    std::replace(path.begin(), path.end(), '\\', '/');
+    path.push_back('/');
+    return path;
 }
 
 void create_directory(const std::string& dirpath) {
-    throw CheckerException("Unsupported operation: [create_directory]");
+    std::wstring wpath = utils::widen(dirpath);
+    BOOL err = CreateDirectoryW(&wpath.front(), NULL);
+    if (0 == err && ERROR_ALREADY_EXISTS != GetLastError()) {
+        throw CheckerException(std::string() + "Error getting creating dir," +
+            " path: [" + dirpath + "], error: [" + utils::errcode_to_string(GetLastError()) + "]");
+    }
 }
 
 void thread_sleep_millis(uint32_t millis) {

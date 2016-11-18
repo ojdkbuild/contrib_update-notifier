@@ -101,15 +101,14 @@ std::string resolve_config_path(Options& opts, const std::string& appdir) {
 }
 
 
-std::string resolve_version_path(const checker::Config& cf, const std::string& appdir) {
+std::string resolve_version_path(const checker::Config& cf) {
     namespace ch = checker;
-    // std::string appdata_dir = ch::platform::get_userdata_directory(cf);
-    // std::string vendor_dir = appdata_dir + "/" + cf.vendor_name;
-    // ch::platform::create_directory(vendor_dir);
-    // std::string appdir = vendor_dir + "/" + cf.application_name;
-    // ch::platform::create_directory(appdir);
-    // return appdir + "/" + cf.version_filename;
-    return appdir + "version.json";
+    std::string appdata_dir = ch::platform::get_userdata_directory();
+    std::string vendor_dir = appdata_dir + cf.vendor_name;
+    ch::platform::create_directory(vendor_dir);
+    std::string appdir = vendor_dir + "/" + cf.application_name;
+    ch::platform::create_directory(appdir);
+    return appdir + "/version.json";
 }
 
 checker::Version load_local_version(const checker::Config& cf, const std::string& verpath) {
@@ -170,7 +169,7 @@ int main(int argc, char** argv) {
         ch::Config cf(cf_json, appdir);
         
         // load local version
-        std::string verpath = resolve_version_path(cf, appdir);
+        std::string verpath = resolve_version_path(cf);
         ch::Version local = load_local_version(cf, verpath);
 
         // fetch remote version
