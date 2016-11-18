@@ -40,10 +40,6 @@ set ( ${PROJECT_NAME}_SHIPPED_VERSION_NUMBER ${${PROJECT_NAME}_MAJOR_VERSION}${$
 set ( ${PROJECT_NAME}_CHECKER_MANIFEST_PATH ${CMAKE_CURRENT_LIST_DIR}/resources/checker.manifest CACHE STRING "Path to checker manifest" )
 set ( ${PROJECT_NAME}_NOTIFIER_MANIFEST_PATH ${CMAKE_CURRENT_LIST_DIR}/resources/notifier.manifest CACHE STRING "Path to notifier manifest" )
 
-# deps options
-set ( ojdkbuild_zlib_ENABLE_STATIC ON CACHE BOOL "")
-set ( ojdkbuild_zlib_ENABLE_SHARED OFF CACHE BOOL "")
-
 # static libraries
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/zlib )
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/jansson )
@@ -51,6 +47,8 @@ ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/openssl )
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/curl )
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/popt )
 
+# andchor target
+add_custom_target ( ${PROJECT_NAME} )
 
 # checker
 
@@ -60,7 +58,7 @@ configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/config.json
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/config.json )
 
 # dependencies
-set ( checker_DEPS zlib jansson openssl curl popt )
+set ( checker_DEPS zlib_static jansson openssl curl popt )
 ojdkbuild_pkg_check_modules ( checker_DEPS_PC REQUIRED checker_DEPS )
 
 # executable
@@ -90,6 +88,8 @@ target_compile_options ( checker PRIVATE ${checker_DEPS_PC_CFLAGS} )
 
 set_property ( TARGET checker APPEND_STRING PROPERTY LINK_FLAGS "/manifest:no" )
 
+add_dependencies ( ${PROJECT_NAME} checker )
+
 
 # notifier
 
@@ -118,3 +118,10 @@ target_link_libraries ( notifier
         comctl32 )
 
 set_property ( TARGET notifier APPEND_STRING PROPERTY LINK_FLAGS "/manifest:no" )
+
+add_dependencies ( ${PROJECT_NAME} notifier )
+
+
+# installer
+configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/installer.xsl
+        ${CMAKE_CURRENT_BINARY_DIR}/installer.xsl )
