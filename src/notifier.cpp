@@ -184,8 +184,6 @@ void show_update_dialog(HWND hwnd) {
 }
 
 LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    // std::wstring ew = ch::utils::widen(ch::utils::to_string(message));
-    // MessageBox(NULL, ew.c_str(), L"", MB_OK);
     switch (message) {
     case WM_CREATE: {
             bool success = add_notification(hwnd);
