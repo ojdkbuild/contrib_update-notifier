@@ -20,6 +20,10 @@
                     <File Id="_8d0555db_4d3c_4a8c_920a_caf43b3aeb28" Name="config.json" KeyPath="yes" DiskId="1"
                             Source="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/config.json"/>
                 </Component>
+                <Component Id="_a621153a_aacd_4755_bb6d_134f24411ba1" Guid="cc7a0b60-ce7a-4ef2-b081-eaa448dfb8c4" Win64="yes">
+                    <File Id="_3fddad02_1300_4590_9f16_e26fa1172558" Name="checker.crt" KeyPath="yes" DiskId="1"
+                            Source="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/checker.crt"/>
+                </Component>
             </Directory>
         </Directory>
     </xsl:template>
@@ -33,6 +37,7 @@
             <ComponentRef Id="_5efc6c34_bcd0_4a96_9731_aa0ad8921614"/>
             <ComponentRef Id="_0e25658d_02f0_490e_8c00_b91b99397a45"/>
             <ComponentRef Id="_c393a906_51fe_4a26_b1d8_df8d9297fb9c"/>
+            <ComponentRef Id="_a621153a_aacd_4755_bb6d_134f24411ba1"/>
         </Feature>
     </xsl:template>
 </xsl:stylesheet>

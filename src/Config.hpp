@@ -91,7 +91,7 @@ public:
     curl_ssl_verifypeer(false)
     { }
     
-    Config(const JsonRecord& json) :
+    Config(const JsonRecord& json, const std::string& appdir) :
     shipped_version_number(json.get_uint32("shipped_version_number", -1)),
     remote_version_url(json.get_string("remote_version_url")),
     max_json_size_bytes(json.get_uint32("max_json_size_bytes", 1 << 15)),
@@ -129,7 +129,20 @@ public:
     curl_ssl_verifypeer(json.get_bool("curl_ssl_verifypeer", true)),
     curl_cainfo_filename(json.get_string("curl_cainfo_filename")),
     curl_crlfile_filename(json.get_string("curl_crlfile_filename")),
-    curl_ssl_cipher_list(json.get_string("curl_ssl_cipher_list")) { }
+    curl_ssl_cipher_list(json.get_string("curl_ssl_cipher_list")) { 
+        if (!curl_sslcert_filename.empty()) {
+            curl_sslcert_filename.insert(0, appdir);
+        }
+        if (!curl_sslkey_filename.empty()) {
+            curl_sslkey_filename.insert(0, appdir);
+        }
+        if (!curl_cainfo_filename.empty()) {
+            curl_cainfo_filename.insert(0, appdir);
+        }
+        if (!curl_crlfile_filename.empty()) {
+            curl_crlfile_filename.insert(0, appdir);
+        }
+    }
 };
 
 } // namespace

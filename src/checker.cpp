@@ -92,18 +92,16 @@ private:
     
 };
 
-std::string resolve_config_path(Options& opts) {
+std::string resolve_config_path(Options& opts, const std::string& appdir) {
     namespace ch = checker;
     if (opts.config) {
         return std::string(opts.config);
     }
-    std::string exepath = ch::platform::current_executable_path();
-    std::string dirpath = ch::utils::strip_filename(exepath);
-    return dirpath + "config.json";
+    return appdir + "config.json";
 }
 
 
-std::string resolve_version_path(const checker::Config& cf) {
+std::string resolve_version_path(const checker::Config& cf, const std::string& appdir) {
     namespace ch = checker;
     // std::string appdata_dir = ch::platform::get_userdata_directory(cf);
     // std::string vendor_dir = appdata_dir + "/" + cf.vendor_name;
@@ -111,9 +109,7 @@ std::string resolve_version_path(const checker::Config& cf) {
     // std::string appdir = vendor_dir + "/" + cf.application_name;
     // ch::platform::create_directory(appdir);
     // return appdir + "/" + cf.version_filename;
-    std::string exepath = ch::platform::current_executable_path();
-    std::string dirpath = ch::utils::strip_filename(exepath);
-    return dirpath + "version.json";
+    return appdir + "version.json";
 }
 
 checker::Version load_local_version(const checker::Config& cf, const std::string& verpath) {
@@ -164,13 +160,17 @@ int main(int argc, char** argv) {
     
     // do work
     try {
+        // find out appdir
+        std::string exepath = ch::platform::current_executable_path();
+        std::string appdir = ch::utils::strip_filename(exepath);
+
         // load config
-        std::string configpath = resolve_config_path(opts);
+        std::string configpath = resolve_config_path(opts, appdir);
         ch::JsonRecord cf_json = ch::read_from_file(configpath, 1 << 15);
-        ch::Config cf(cf_json);
+        ch::Config cf(cf_json, appdir);
         
         // load local version
-        std::string verpath = resolve_version_path(cf);
+        std::string verpath = resolve_version_path(cf, appdir);
         ch::Version local = load_local_version(cf, verpath);
 
         // fetch remote version

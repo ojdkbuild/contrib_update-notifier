@@ -56,6 +56,8 @@ configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/checker.rc
         ${CMAKE_CURRENT_BINARY_DIR}/checker.rc )
 configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/config.json
         ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/config.json )
+configure_file ( ${OJDKBUILD_DIR}/lookaside/ca-certificates/ca-bundle.trust.crt
+        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/checker.crt COPYONLY )
 
 # dependencies
 set ( checker_DEPS zlib_static jansson openssl curl popt )

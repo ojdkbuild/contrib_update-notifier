@@ -21,7 +21,7 @@ namespace { // anonymous
 namespace ch = checker;
 
 enum State { STATE_STANDBY, STATE_ABOUT, STATE_UPDATE };
-class __declspec(uuid("7cf53058-6728-45bc-a0e6-1ed7629708bc")) NOTIFIER_ICON;
+const UINT NOTIFIER_ICON_UID = 1;
 const std::wstring NOTIFIER_WINDOW_CLASS = L"e48e2be7-451e-48e5-8889-8c97c1485340";
 const UINT WMAPP_NOTIFYCALLBACK = WM_APP + 1;
 const size_t NOTIFIER_MAX_RC_LEN = 1 << 12;
@@ -71,8 +71,8 @@ bool add_notification(HWND hwnd) {
     memset(&nid, '\0', sizeof(NOTIFYICONDATA));
     nid.cbSize = sizeof(NOTIFYICONDATA);
     nid.hWnd = hwnd;
-    nid.uFlags = NIF_INFO | NIF_ICON | NIF_TIP | NIF_MESSAGE | NIF_SHOWTIP | NIF_GUID;
-    nid.guidItem = __uuidof(NOTIFIER_ICON);
+    nid.uID = NOTIFIER_ICON_UID;
+    nid.uFlags = NIF_INFO | NIF_ICON | NIF_TIP | NIF_MESSAGE | NIF_SHOWTIP;
     nid.uCallbackMessage = WMAPP_NOTIFYCALLBACK;
     HRESULT err_icon = LoadIconMetric(NOTIFIER_HANDLE_INSTANCE, MAKEINTRESOURCE(IDI_NOTIFICATIONICON), LIM_SMALL, &nid.hIcon);
     if (S_OK != err_icon) {
@@ -100,21 +100,22 @@ bool add_notification(HWND hwnd) {
     }
 }
 
-bool delete_notification() {
+bool delete_notification(HWND hwnd) {
     NOTIFYICONDATA nid;
     memset(&nid, '\0', sizeof(NOTIFYICONDATA));
     nid.cbSize = sizeof(NOTIFYICONDATA);
-    nid.uFlags = NIF_GUID;
-    nid.guidItem = __uuidof(NOTIFIER_ICON);
+    nid.hWnd = hwnd;
+    nid.uID = NOTIFIER_ICON_UID;
     return Shell_NotifyIcon(NIM_DELETE, &nid);
 }
 
-bool restore_tooltip() {
+bool restore_tooltip(HWND hwnd) {
     NOTIFYICONDATA nid;
     memset(&nid, '\0', sizeof(NOTIFYICONDATA));
     nid.cbSize = sizeof(NOTIFYICONDATA);
-    nid.uFlags = NIF_SHOWTIP | NIF_GUID;
-    nid.guidItem = __uuidof(NOTIFIER_ICON);
+    nid.hWnd = hwnd;
+    nid.uID = NOTIFIER_ICON_UID;
+    nid.uFlags = NIF_SHOWTIP;
     return Shell_NotifyIcon(NIM_MODIFY, &nid);
 }
 
@@ -183,6 +184,8 @@ void show_update_dialog(HWND hwnd) {
 }
 
 LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
+    // std::wstring ew = ch::utils::widen(ch::utils::to_string(message));
+    // MessageBox(NULL, ew.c_str(), L"", MB_OK);
     switch (message) {
     case WM_CREATE: {
             bool success = add_notification(hwnd);
@@ -217,13 +220,13 @@ LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             show_update_dialog(hwnd);
             break;
         case NIN_BALLOONTIMEOUT: {
-                bool success = restore_tooltip();
+                bool success = restore_tooltip(hwnd);
                 if (!success) {
                     DestroyWindow(hwnd);
                 }
             } break;
         case NIN_BALLOONUSERCLICK: {
-                bool success = restore_tooltip();
+                bool success = restore_tooltip(hwnd);
                 if (success) {
                     show_update_dialog(hwnd);
                 } else {
@@ -240,7 +243,7 @@ LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
     case WM_TIMER:
         break;
     case WM_DESTROY:
-        delete_notification();
+        delete_notification(hwnd);
         PostQuitMessage(0);
         break;
     default:
@@ -273,7 +276,6 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /
     HWND hwnd = CreateWindowExW(0, NOTIFIER_WINDOW_CLASS.c_str(), NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
     if (NULL == hwnd) {
         return 1;
-
     }
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {

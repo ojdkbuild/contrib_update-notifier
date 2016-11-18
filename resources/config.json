@@ -1,6 +1,6 @@
 {
     "shipped_version_number": 0,
-    "remote_version_url": "http://127.0.0.1:8000/version.json",
+    "remote_version_url": "https://raw.githubusercontent.com/ojdkbuild/scratch/master/version.json",
     "max_json_size_bytes": 32768,
     "max_path_length": 1024,
     "vendor_name": "ojdkbuild",
@@ -20,7 +20,7 @@
     "curl_accept_encoding": "gzip",
     "curl_followlocation": true,
     "curl_maxredirs": 32,
-    "curl_useragent": "",
+    "curl_useragent": "Mozilla/5.0 (compatible; ojdkbuildbot/2.1; +https://github.com/ojdkbuild/contrib_update-notifier)",
 
     "curl_max_sent_speed_large_bytes_per_second": 0,
     "curl_max_recv_speed_large_bytes_per_second": 0,
@@ -30,10 +30,10 @@
     "curl_sslkey_filename": "",
     "curl_ssl_key_type": "",
     "curl_ssl_keypasswd": "",
-    "curl_require_tls": false,
-    "curl_ssl_verifyhost": false,
-    "curl_ssl_verifypeer": false,
-    "curl_cainfo_filename": "",
+    "curl_require_tls": true,
+    "curl_ssl_verifyhost": true,
+    "curl_ssl_verifypeer": true,
+    "curl_cainfo_filename": "checker.crt",
     "curl_crlfile_filename": "",
     "curl_ssl_cipher_list": ""
 }
