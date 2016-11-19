@@ -92,6 +92,18 @@ void create_directory(const std::string& dirpath) {
     }
 }
 
+void delete_file(const std::string& dirpath) {
+    std::wstring wpath = utils::widen(dirpath);
+    BOOL err = DeleteFileW(wpath.c_str());
+    (void) err;
+}
+
+void delete_directory(const std::string& dirpath) {
+    std::wstring wpath = utils::widen(dirpath);
+    BOOL err = RemoveDirectoryW(wpath.c_str());
+    (void) err;
+}
+
 void thread_sleep_millis(uint32_t millis) {
     Sleep(millis);
 }

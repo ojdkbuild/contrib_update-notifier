@@ -31,6 +31,10 @@ std::string get_userdata_directory();
 
 void create_directory(const std::string& dirpath);
 
+void delete_file(const std::string& dirpath);
+
+void delete_directory(const std::string& dirpath);
+
 void thread_sleep_millis(uint32_t millis);
 
 std::string current_executable_path();

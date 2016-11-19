@@ -30,17 +30,19 @@ class Options {
 public:    
     // options list
     char* config;
+    int delet;
     int help;
     int usage;
     
     std::string parse_error;
     std::vector<std::string> args;
-    struct poptOption table[4];
+    struct poptOption table[5];
     poptContext ctx;
 
     Options(int argc, char** argv) :
     // options initialization
     config(NULL),
+    delet(0),
     help(0),
     usage(0),
     
@@ -48,6 +50,7 @@ public:
         // options table
         struct poptOption tb[] = {
             { "config", 'c', POPT_ARG_STRING, &config, static_cast<int> ('c'), "Path to config file", "config.json"},
+            { "delete", 'd', POPT_ARG_NONE,   &delet,  static_cast<int> ('d'), "Delete downloaded file and work directory", NULL},
             { "help",   'h', POPT_ARG_NONE,   &help,   static_cast<int> ('h'), "Show this help message", NULL},
             { "usage", '\0', POPT_ARG_NONE,   &usage,  0, "Display brief usage message", NULL},
             { NULL, 0, 0, NULL, 0}
@@ -156,7 +159,7 @@ int main(int argc, char** argv) {
         poptPrintUsage(opts.ctx, stderr, 0);
         return 0;
     }
-    
+
     // do work
     try {
         // find out appdir
@@ -167,6 +170,15 @@ int main(int argc, char** argv) {
         std::string configpath = resolve_config_path(opts, appdir);
         ch::JsonRecord cf_json = ch::read_from_file(configpath, 1 << 15);
         ch::Config cf(cf_json, appdir);
+
+        // do cleanup and exit (uninstall action)
+        if (opts.delet) {
+            std::string appdata_dir = ch::platform::get_userdata_directory();
+            ch::platform::delete_file(appdata_dir + cf.vendor_name + "/" + cf.application_name + "/version.json");
+            ch::platform::delete_directory(appdata_dir + cf.vendor_name + "/" + cf.application_name);
+            ch::platform::delete_directory(appdata_dir + cf.vendor_name);
+            return 0;
+        }
         
         // load local version
         std::string verpath = resolve_version_path(cf);
