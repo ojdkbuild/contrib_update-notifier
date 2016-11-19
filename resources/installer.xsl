@@ -44,5 +44,13 @@
             <ComponentRef Id="_0e25658d_02f0_490e_8c00_b91b99397a45"/>
             <ComponentRef Id="_c393a906_51fe_4a26_b1d8_df8d9297fb9c"/>
         </Feature>
+        <Property Id="WixQuietExec64CmdLine" Value=" "/>
+        <CustomAction Id="_79ca21fa_3a02_4a9f_b8ba_767b0a80e4e6" Property="WixQuietExec64CmdLine" Value="&quot;[UPDATEDIR]checker.exe&quot; -d"/>
+        <CustomAction Id="_3c33d055_b0b1_46a6_b394_f1214e39ce0f" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
+        <InstallExecuteSequence>
+            <!--<Custom Action="_3c33d055_b0b1_46a6_b394_f1214e39ce0f" Before="RemoveFiles">NOT Installed AND NOT PATCH</Custom>-->
+            <Custom Action="_79ca21fa_3a02_4a9f_b8ba_767b0a80e4e6" Before="RemoveFiles"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
+            <Custom Action="_3c33d055_b0b1_46a6_b394_f1214e39ce0f" After="_79ca21fa_3a02_4a9f_b8ba_767b0a80e4e6"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
+        </InstallExecuteSequence>
     </xsl:template>
 </xsl:stylesheet>
