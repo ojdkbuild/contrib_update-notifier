@@ -307,8 +307,6 @@ fd_set create_fd() {
 
 // curl_multi_socket_action may be used instead of fdset with newer versions of curl
 void fill_buffer(FetchCtx& ctx) {
-    // some data in buffer
-    if (ctx.buf_idx < ctx.buf.size()) return;
     ctx.buf_idx = 0;
     ctx.buf.resize(0);
     // attempt to fill buffer
@@ -363,18 +361,20 @@ size_t write_headers(FetchCtx& ctx, char* buffer, size_t size, size_t nitems) {
 }
 
 size_t read(FetchCtx& ctx, void* buffer, size_t size) {
-    if (!ctx.open) {
-        return 0;
-    }
-    fill_buffer(ctx);
-    if (0 == ctx.buf.size()) {
-        // currently zero curl read is not handled
-        return 0;
+    if (ctx.buf_idx == ctx.buf.size()) {
+        if (!ctx.open) {
+            return 0;
+        }
+        fill_buffer(ctx);
+        if (0 == ctx.buf.size()) {
+            // currently zero curl read is not handled
+            return 0;
+        }
     }
     // return from buffer
     size_t avail = ctx.buf.size() - ctx.buf_idx;
     size_t reslen = avail <= size ? avail : size;
-    std::memcpy(buffer, ctx.buf.data(), reslen);
+    std::memcpy(buffer, ctx.buf.data() + ctx.buf_idx, reslen);
     ctx.buf_idx += reslen;
     return reslen;
 }
