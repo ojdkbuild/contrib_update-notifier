@@ -35,9 +35,9 @@
         <Feature>
             <xsl:apply-templates select="@* | *"/>
         </Feature>
-        <Feature Id="update_notifier" ConfigurableDirectory="UPDATEDIR" Absent="allow" AllowAdvertise="no" Level="2" 
+        <Feature Id="update_notifier" ConfigurableDirectory="UPDATEDIR" Absent="allow" AllowAdvertise="no" Level="${${PROJECT_NAME}_INSTALLER_FEATURE_LEVEL}" 
                 Title="Updater Notifier"
-                Description="TODO: description">
+                Description="Update Notifier checks availability of a new product version online and displays UI notification. This feature installs two tasks for Windows Task Scheduler.">
             <ComponentRef Id="_5efc6c34_bcd0_4a96_9731_aa0ad8921614"/>
             <ComponentRef Id="_7b774e9f_13af_49bf_b3fe_8adf83674223"/>
             <ComponentRef Id="_a621153a_aacd_4755_bb6d_134f24411ba1"/>
@@ -45,15 +45,15 @@
             <ComponentRef Id="_c393a906_51fe_4a26_b1d8_df8d9297fb9c"/>
         </Feature>
         <Property Id="WixQuietExec64CmdLine" Value=" "/>
-        <CustomAction Id="_268df76e_333f_4d09_98cd_bcab59395e2c" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${openjdk_INSTALLER_VENDOR_DIRNAME}_jdk_update_checker /sc daily /st 12:00 /ru [LogonUser] /tr &quot;wscript \&quot;[UPDATEDIR]checker.vbs\&quot;&quot;"/>
+        <CustomAction Id="_268df76e_333f_4d09_98cd_bcab59395e2c" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_CHECKER_SCHEDULE} /tr &quot;wscript \&quot;[UPDATEDIR]checker.vbs\&quot;&quot;"/>
         <CustomAction Id="_ad90e97e_77ee_4f1f_b127_d054239e8174" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
-        <CustomAction Id="_7e6b83ae_8120_40e2_a2fd_bcc4302b5ac1" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${openjdk_INSTALLER_VENDOR_DIRNAME}_jdk_update_notifier /sc onlogon /ru [LogonUser] /tr &quot;[UPDATEDIR]notifier.exe&quot;"/>
+        <CustomAction Id="_7e6b83ae_8120_40e2_a2fd_bcc4302b5ac1" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_NOTIFIER_SCHEDULE} /tr &quot;[UPDATEDIR]notifier.exe&quot;"/>
         <CustomAction Id="_e2b0a4e7_3b5f_4c08_83f4_e9b692ccf518" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
         <CustomAction Id="_79ca21fa_3a02_4a9f_b8ba_767b0a80e4e6" Property="WixQuietExec64CmdLine" Value="&quot;[UPDATEDIR]checker.exe&quot; -d"/>
         <CustomAction Id="_3c33d055_b0b1_46a6_b394_f1214e39ce0f" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
-        <CustomAction Id="_6ed57788_9ade_421f_bd9f_7a0d32b5242f" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${openjdk_INSTALLER_VENDOR_DIRNAME}_jdk_update_checker"/>
+        <CustomAction Id="_6ed57788_9ade_421f_bd9f_7a0d32b5242f" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME}"/>
         <CustomAction Id="_ce2a8b40_5ca6_45bd_bdfa_a413be73f8ba" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
-        <CustomAction Id="_a6864546_7d27_41c0_abb4_356d81cf31b8" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${openjdk_INSTALLER_VENDOR_DIRNAME}_jdk_update_notifier"/>
+        <CustomAction Id="_a6864546_7d27_41c0_abb4_356d81cf31b8" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME}"/>
         <CustomAction Id="_7770bf24_eea0_4b01_bec3_094c621b11f4" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
         <InstallExecuteSequence>
             <Custom Action="_268df76e_333f_4d09_98cd_bcab59395e2c" After="InstallFinalize"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
