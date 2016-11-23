@@ -46,6 +46,7 @@ HINSTANCE NOTIFIER_HANDLE_INSTANCE = NULL;
 std::wstring NOTIFIER_BALLOON_TEXT;
 std::wstring NOTIFIER_UPDATE_HEADER;
 std::wstring NOTIFIER_UPDATE_TEXT;
+std::wstring NOTIFIER_BMP_ICON_PATH;
 // we should be fine without sync in STA mode
 State NOTIFIER_STATE = STATE_STANDBY;
 
@@ -73,6 +74,9 @@ bool load_input_json() {
         NOTIFIER_BALLOON_TEXT = ch::utils::widen(ver.ui_balloon_text);
         NOTIFIER_UPDATE_HEADER = ch::utils::widen(ver.ui_update_header);
         NOTIFIER_UPDATE_TEXT = ch::utils::widen(ver.ui_update_text);
+        std::string exepath = ch::platform::current_executable_path();
+        std::string exedir = ch::utils::strip_filename(exepath);
+        NOTIFIER_BMP_ICON_PATH = ch::utils::widen(exedir + "icon.bmp");
         std::wstring vnumwstr = load_resource_string(IDS_SHIPPED_VERSION_NUMBER);
         std::string vnumstr = ch::utils::narrow(vnumwstr);
         uint32_t vnum = ch::utils::parse_uint32(vnumstr);
@@ -94,11 +98,15 @@ bool add_notification(HWND hwnd) {
     if (S_OK != err_icon) {
         return false;
     }
+    nid.hBalloonIcon = static_cast<HICON>(LoadImageW(NULL, NOTIFIER_BMP_ICON_PATH.c_str(), IMAGE_BITMAP, 128, 128, LR_LOADFROMFILE));
+    if (NULL == nid.hBalloonIcon) {
+        return false;
+    }
     int err_tooltip = LoadStringW(NOTIFIER_HANDLE_INSTANCE, IDS_TOOLTIP, nid.szTip, ARRAYSIZE(nid.szTip));
     if (0 == err_tooltip) {
         return false;
     }
-    nid.dwInfoFlags = NIIF_INFO | NIIF_NOSOUND | NIIF_RESPECT_QUIET_TIME;
+    nid.dwInfoFlags = NIIF_USER | NIIF_NOSOUND | NIIF_RESPECT_QUIET_TIME;
     int err_title = LoadStringW(NOTIFIER_HANDLE_INSTANCE, IDS_BALLOON_TITLE, nid.szInfoTitle, ARRAYSIZE(nid.szInfoTitle));
     if (0 == err_title) {
         return false;

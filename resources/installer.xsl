@@ -44,6 +44,10 @@
                     <File Id="_8d0555db_4d3c_4a8c_920a_caf43b3aeb28" Name="config.json" KeyPath="yes" DiskId="1"
                             Source="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/config.json"/>
                 </Component>
+                <Component Id="_ee5a58db_81ac_46d2_b628_67a9123dee16" Guid="f838cfb5-dfd1-4245-b26a-67d61b7b171b" Win64="yes">
+                    <File Id="_1818b11f_0301_44a1_a9b1_26d6a17cf2e1" Name="icon.bmp" KeyPath="yes" DiskId="1" 
+                            Source="${${PROJECT_NAME}_BMP_ICON_PATH}"/>
+                </Component>
             </Directory>
         </Directory>
     </xsl:template>
@@ -59,6 +63,7 @@
             <ComponentRef Id="_a621153a_aacd_4755_bb6d_134f24411ba1"/>
             <ComponentRef Id="_0e25658d_02f0_490e_8c00_b91b99397a45"/>
             <ComponentRef Id="_c393a906_51fe_4a26_b1d8_df8d9297fb9c"/>
+            <ComponentRef Id="_ee5a58db_81ac_46d2_b628_67a9123dee16"/>
         </Feature>
         <Property Id="WixQuietExec64CmdLine" Value=" "/>
         <CustomAction Id="_268df76e_333f_4d09_98cd_bcab59395e2c" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_CHECKER_SCHEDULE} /tr &quot;wscript \&quot;[UPDATEDIR]checker.vbs\&quot;&quot;"/>

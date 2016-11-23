@@ -22,6 +22,7 @@ include ( ${OJDKBUILD_DIR}/resources/cmake/version.cmake )
 
 # options
 set ( ${PROJECT_NAME}_ICON_PATH "${OJDKBUILD_DIR}/resources/installer/instres/icon.ico" CACHE STRING "Path to icon file" )
+set ( ${PROJECT_NAME}_BMP_ICON_PATH "${OJDKBUILD_DIR}/resources/installer/instres/icon.bmp" CACHE STRING "Path to 128x128 bmp icon file" )
 set ( ${PROJECT_NAME}_INSTALLER_FEATURE_LEVEL "2" CACHE STRING "MSI Feature 'Level' for 'update_notifier' component" )
 set ( ${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME "${openjdk_INSTALLER_VENDOR_DIRNAME}_jdk_update_checker" CACHE STRING "Name for 'checker' task" ) 
 set ( ${PROJECT_NAME}_INSTALLER_CHECKER_SCHEDULE "/sc daily /st 12:00 /ru [LogonUser]" CACHE STRING "Scheduling details for 'checker' task" )
