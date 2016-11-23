@@ -269,6 +269,12 @@ LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 } // namespace
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /* nCmdShow */) {
+    // check we are alone
+    std::wstring mutex_uid = load_resource_string(IDS_INSTANCE_MUTEX_UUID);
+    ch::utils::NamedMutex mutex(mutex_uid);
+    if (mutex.already_taken()) {
+        return 0;
+    }
     // fill globals
     NOTIFIER_HANDLE_INSTANCE = hInstance;
     bool err_vcheck = load_input_json();

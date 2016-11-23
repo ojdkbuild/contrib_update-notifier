@@ -28,6 +28,16 @@
 #include <sstream>
 #include <string>
 
+#ifdef _WIN32
+#define UNICODE
+#define _UNICODE
+#include <windows.h>
+// http://stackoverflow.com/a/6884102/314015
+#ifdef max
+#undef max
+#endif // max
+#endif // _WIN32
+
 #include "CheckerException.hpp"
 
 namespace checker {
@@ -53,6 +63,27 @@ std::string narrow(const wchar_t* wbuf, size_t length);
 std::string narrow(std::wstring wstr);
 
 std::string errcode_to_string(uint32_t code);
+
+class NamedMutex {
+  DWORD  error;
+  HANDLE mutex;
+
+public:
+    NamedMutex(const std::wstring& name) {
+        mutex = CreateMutexW(NULL, FALSE, name.c_str());
+        error = GetLastError();
+    }
+   
+    ~NamedMutex() {
+        if (mutex) {
+            CloseHandle(mutex);
+        }
+    }
+
+    bool already_taken() {
+        return (ERROR_ALREADY_EXISTS == error);
+    }
+};
 
 #endif // _WIN32
 

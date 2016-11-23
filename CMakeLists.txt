@@ -38,6 +38,7 @@ set ( ${PROJECT_NAME}_BROWSER_URL "https://github.com/ojdkbuild/ojdkbuild#downlo
 set ( ${PROJECT_NAME}_DOWNLOAD_LABEL "Download" CACHE STRING "'Download' menu label" )
 set ( ${PROJECT_NAME}_ABOUT_LABEL "About" CACHE STRING "'About' menu label" )
 set ( ${PROJECT_NAME}_CANCEL_LABEL "Cancel" CACHE STRING "'Cancel' menu label" )
+set ( ${PROJECT_NAME}_INSTANCE_MUTEX_UUID "7824d8b0-c6d6-47f9-aa39-4498e8e4f498" CACHE STRING "UUID for named mutex" )
 set ( ${PROJECT_NAME}_EXE_VERSION "1,${${PROJECT_NAME}_MAJOR_VERSION},${${PROJECT_NAME}_UPDATE}${${PROJECT_NAME}_RPMBUILD},${${PROJECT_NAME}_BUILD}" CACHE STRING "EXE version field" )
 set ( ${PROJECT_NAME}_FILE_VERSION "1.${${PROJECT_NAME}_MAJOR_VERSION}.0.${${PROJECT_NAME}_UPDATE}.${${PROJECT_NAME}_RPMBUILD}" CACHE STRING "File version field" )
 set ( ${PROJECT_NAME}_COMPANY_NAME_LABEL "${${PROJECT_NAME}_VENDOR}" CACHE STRING "Company name version field" )

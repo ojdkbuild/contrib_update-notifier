@@ -35,10 +35,6 @@
 #include "utils.hpp"
 #include "platform.hpp"
 
-// http://stackoverflow.com/a/6884102/314015
-# if defined(_WIN32) && defined(max)
-#     undef max
-# endif // max
 
 namespace checker {
 
