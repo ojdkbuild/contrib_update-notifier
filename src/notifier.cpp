@@ -35,7 +35,7 @@ namespace { // anonymous
 
 namespace ch = checker;
 
-enum State { STATE_STANDBY, STATE_ABOUT, STATE_UPDATE };
+enum State { STATE_STANDBY, STATE_BALLOON, STATE_ABOUT, STATE_UPDATE, STATE_HOVERED, STATE_CLICKED };
 const UINT NOTIFIER_ICON_UID = 1;
 const std::wstring NOTIFIER_WINDOW_CLASS = L"e48e2be7-451e-48e5-8889-8c97c1485340";
 const UINT WMAPP_NOTIFYCALLBACK = WM_APP + 1;
@@ -133,16 +133,6 @@ bool delete_notification(HWND hwnd) {
     return Shell_NotifyIcon(NIM_DELETE, &nid);
 }
 
-bool restore_tooltip(HWND hwnd) {
-    NOTIFYICONDATA nid;
-    memset(&nid, '\0', sizeof(NOTIFYICONDATA));
-    nid.cbSize = sizeof(NOTIFYICONDATA);
-    nid.hWnd = hwnd;
-    nid.uID = NOTIFIER_ICON_UID;
-    nid.uFlags = NIF_SHOWTIP;
-    return Shell_NotifyIcon(NIM_MODIFY, &nid);
-}
-
 bool show_context_menu(HWND hwnd, int x, int y) {
     HMENU menu = LoadMenu(NOTIFIER_HANDLE_INSTANCE, MAKEINTRESOURCE(IDC_CONTEXTMENU));
     if (NULL == menu) {
@@ -178,23 +168,21 @@ bool open_browser() {
 }
 
 bool show_about_dialog(HWND hwnd) {
-    if (STATE_STANDBY != NOTIFIER_STATE) {
+    if (STATE_UPDATE == NOTIFIER_STATE) {
         return true;
     }
+    State prev = NOTIFIER_STATE;
     NOTIFIER_STATE = STATE_ABOUT;
     std::wstring title = load_resource_string(IDS_ABOUT_TITLE);
     std::wstring header = load_resource_string(IDS_ABOUT_HEADER);
     std::wstring text = load_resource_string(IDS_ABOUT_TEXT);
     HRESULT res = TaskDialog(hwnd, NOTIFIER_HANDLE_INSTANCE, title.c_str(), header.c_str(), text.c_str(),
             TDCBF_CLOSE_BUTTON, MAKEINTRESOURCE(IDI_NOTIFICATIONICON), NULL);
-    NOTIFIER_STATE = STATE_STANDBY;
+    NOTIFIER_STATE = prev;
     return S_OK == res;
 }
 
 void show_update_dialog(HWND hwnd) {
-    if (STATE_STANDBY != NOTIFIER_STATE) {
-        return;
-    }
     NOTIFIER_STATE = STATE_UPDATE;
     int chosen = 0;
     std::wstring title = load_resource_string(IDS_UPDATE_TITLE);
@@ -207,6 +195,16 @@ void show_update_dialog(HWND hwnd) {
     DestroyWindow(hwnd);
 }
 
+bool restore_tooltip(HWND hwnd) {
+    NOTIFYICONDATA nid;
+    memset(&nid, '\0', sizeof(NOTIFYICONDATA));
+    nid.cbSize = sizeof(NOTIFYICONDATA);
+    nid.hWnd = hwnd;
+    nid.uID = NOTIFIER_ICON_UID;
+    nid.uFlags = NIF_SHOWTIP;
+    return Shell_NotifyIcon(NIM_MODIFY, &nid);
+}
+
 LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case WM_CREATE: {
@@ -214,6 +212,7 @@ LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             if (!success) {
                 return -1;
             }
+            NOTIFIER_STATE = STATE_BALLOON;
         } break;
     case WM_COMMAND: {
             int const wmId = LOWORD(wParam);
@@ -238,32 +237,38 @@ LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
         } break;
     case WMAPP_NOTIFYCALLBACK:
         switch (LOWORD(lParam)) {
-        case NIN_SELECT:
-            show_update_dialog(hwnd);
-            break;
-        case NIN_BALLOONTIMEOUT: {
-                bool success = restore_tooltip(hwnd);
-                if (!success) {
-                    DestroyWindow(hwnd);
+            case WM_MOUSEMOVE:
+                if (STATE_BALLOON == NOTIFIER_STATE) {
+                    NOTIFIER_STATE = STATE_HOVERED;
                 }
-            } break;
-        case NIN_BALLOONUSERCLICK: {
-                bool success = restore_tooltip(hwnd);
-                if (success) {
+                break;
+            case NIN_SELECT:
+                if (STATE_UPDATE != NOTIFIER_STATE && STATE_ABOUT != NOTIFIER_STATE) {
                     show_update_dialog(hwnd);
-                } else {
+                }
+                break;
+            case NIN_BALLOONUSERCLICK:
+                if (STATE_BALLOON == NOTIFIER_STATE || STATE_CLICKED == NOTIFIER_STATE) {
+                    show_update_dialog(hwnd);
+                } else if (STATE_HOVERED == NOTIFIER_STATE) {
+                    NOTIFIER_STATE = STATE_CLICKED;
+                }
+                break;
+            case NIN_BALLOONTIMEOUT:
+                if (STATE_BALLOON == NOTIFIER_STATE) {
                     DestroyWindow(hwnd);
                 }
-            } break;
-        case WM_CONTEXTMENU: {
-                bool success = show_context_menu(hwnd, LOWORD(wParam), HIWORD(wParam));
-                if (!success) {
-                    DestroyWindow(hwnd);
+                break;
+            case WM_CONTEXTMENU:
+                if (STATE_UPDATE != NOTIFIER_STATE && STATE_ABOUT != NOTIFIER_STATE) {
+                    restore_tooltip(hwnd);
+                    bool success = show_context_menu(hwnd, LOWORD(wParam), HIWORD(wParam));
+                    if (!success) {
+                        DestroyWindow(hwnd);
+                    }
                 }
-            } break;
+                break;
         } break;
-    case WM_TIMER:
-        break;
     case WM_DESTROY:
         delete_notification(hwnd);
         PostQuitMessage(0);
