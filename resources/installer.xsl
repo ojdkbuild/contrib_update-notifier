@@ -56,7 +56,7 @@
             <xsl:apply-templates select="@* | *"/>
         </Feature>
         <Feature Id="update_notifier" ConfigurableDirectory="UPDATEDIR" Absent="allow" AllowAdvertise="no" Level="${${PROJECT_NAME}_INSTALLER_FEATURE_LEVEL}" 
-                Title="Updater Notifier"
+                Title="${${PROJECT_NAME}_INSTALLER_FEATURE_TITLE}"
                 Description="Update Notifier checks availability of a new product version online and displays UI notification. This feature installs two tasks for Windows Task Scheduler.">
             <ComponentRef Id="_5efc6c34_bcd0_4a96_9731_aa0ad8921614"/>
             <ComponentRef Id="_7b774e9f_13af_49bf_b3fe_8adf83674223"/>
