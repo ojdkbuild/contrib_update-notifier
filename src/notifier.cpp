@@ -25,6 +25,11 @@
 #include <shellapi.h>
 #include <commctrl.h>
 
+// http://svn.wxwidgets.org/viewvc/wx/wxWidgets/trunk/src/msw/msgdlg.cpp?r1=70409&r2=70408&pathrev=70409
+#ifndef TDF_SIZE_TO_CONTENT
+#define TDF_SIZE_TO_CONTENT 0x1000000
+#endif
+
 #include "jsonio.hpp"
 #include "JsonRecord.hpp"
 #include "Version.hpp"
@@ -182,16 +187,39 @@ bool show_about_dialog(HWND hwnd) {
     return S_OK == res;
 }
 
+HRESULT CALLBACK link_clicked_callback(HWND hwnd, UINT uNotification, WPARAM wParam, LPARAM lParam, LONG_PTR dwRefData) {
+    if (TDN_HYPERLINK_CLICKED != uNotification) {
+        return S_OK;
+    }
+    HINSTANCE res = ShellExecuteW(NULL, NULL, reinterpret_cast<LPCTSTR> (lParam), NULL, NULL, SW_SHOW);
+    bool success = reinterpret_cast<int> (res) > 32;
+    if (success) {
+        TaskDialog(hwnd, NOTIFIER_HANDLE_INSTANCE, L"1", L"2", L"", TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, NULL);
+    }
+    DestroyWindow(hwnd);
+    return S_OK;
+}
+
 void show_update_dialog(HWND hwnd) {
     NOTIFIER_STATE = STATE_UPDATE;
-    int chosen = 0;
+    TASKDIALOGCONFIG cf;
+    memset(&cf, '\0', sizeof(TASKDIALOGCONFIG));
+    cf.cbSize = sizeof(TASKDIALOGCONFIG);
+    cf.hwndParent = hwnd;
+    cf.dwFlags = TDF_ENABLE_HYPERLINKS | TDF_EXPAND_FOOTER_AREA | TDF_ALLOW_DIALOG_CANCELLATION | TDF_SIZE_TO_CONTENT;
+    cf.hInstance = NOTIFIER_HANDLE_INSTANCE;
+    cf.pszFooter = L"<a href=\"http://developers.redhat.com/products/openjdk/\">[TODO] http://developers.redhat.com/products/openjdk/</a>";
+    cf.pfCallback = link_clicked_callback;
     std::wstring title = load_resource_string(IDS_UPDATE_TITLE);
-    HRESULT res = TaskDialog(hwnd, NOTIFIER_HANDLE_INSTANCE, title.c_str(), NOTIFIER_UPDATE_HEADER.c_str(),
-            NOTIFIER_UPDATE_TEXT.c_str(), TDCBF_YES_BUTTON | TDCBF_CANCEL_BUTTON,
-            MAKEINTRESOURCE(IDI_NOTIFICATIONICON), &chosen);
-    if (S_OK == res && IDYES == chosen) {
-        open_browser();
-    }
+    cf.pszWindowTitle = title.c_str();
+    cf.pszMainIcon = MAKEINTRESOURCE(IDI_NOTIFICATIONICON);
+    cf.pszMainInstruction = NOTIFIER_UPDATE_HEADER.c_str();
+    cf.pszFooterIcon = MAKEINTRESOURCE(IDI_NOTIFICATIONICON); 
+    cf.pszExpandedInformation = NOTIFIER_UPDATE_TEXT.c_str();
+    cf.pszExpandedControlText = L"[TODO] To proceed with download and installation please follow a link below";
+    cf.cxWidth = 0;
+    cf.dwCommonButtons = TDCBF_CANCEL_BUTTON;
+    HRESULT res = TaskDialogIndirect(&cf, NULL, NULL, NULL);
     DestroyWindow(hwnd);
 }
 
