@@ -40,7 +40,7 @@ namespace { // anonymous
 
 namespace ch = checker;
 
-enum State { STATE_STANDBY, STATE_BALLOON, STATE_ABOUT, STATE_UPDATE, STATE_HOVERED, STATE_CLICKED };
+enum State { STATE_STANDBY, STATE_UPDATE };
 const UINT NOTIFIER_ICON_UID = 1;
 const std::wstring NOTIFIER_WINDOW_CLASS = L"e48e2be7-451e-48e5-8889-8c97c1485340";
 const UINT WMAPP_NOTIFYCALLBACK = WM_APP + 1;
@@ -138,55 +138,6 @@ bool delete_notification(HWND hwnd) {
     return Shell_NotifyIcon(NIM_DELETE, &nid);
 }
 
-bool show_context_menu(HWND hwnd, int x, int y) {
-    HMENU menu = LoadMenu(NOTIFIER_HANDLE_INSTANCE, MAKEINTRESOURCE(IDC_CONTEXTMENU));
-    if (NULL == menu) {
-        return false;
-    }
-    HMENU submenu = GetSubMenu(menu, 0);
-    if (NULL == submenu) {
-        return false;
-    }
-    // our window must be foreground before calling TrackPopupMenu or the menu will not disappear when the user clicks away
-    BOOL err_fg = SetForegroundWindow(hwnd);
-    if (0 == err_fg) {
-        return false;
-    }
-    // respect menu drop alignment
-    UINT uFlags = TPM_RIGHTBUTTON;
-    if (0 != GetSystemMetrics(SM_MENUDROPALIGNMENT)) {
-        uFlags |= TPM_RIGHTALIGN;
-    } else {
-        uFlags |= TPM_LEFTALIGN;
-    }
-    BOOL err_track = TrackPopupMenuEx(submenu, uFlags, x, y, hwnd, NULL);
-    if (0 == err_track) {
-        return false;
-    }
-    return DestroyMenu(menu);
-}
-
-bool open_browser() {
-    std::wstring url = load_resource_string(IDS_BROWSER_URL);
-    HINSTANCE res = ShellExecuteW(NULL, NULL, url.c_str(), NULL, NULL, SW_SHOW);
-    return reinterpret_cast<int>(res) > 32;
-}
-
-bool show_about_dialog(HWND hwnd) {
-    if (STATE_UPDATE == NOTIFIER_STATE) {
-        return true;
-    }
-    State prev = NOTIFIER_STATE;
-    NOTIFIER_STATE = STATE_ABOUT;
-    std::wstring title = load_resource_string(IDS_ABOUT_TITLE);
-    std::wstring header = load_resource_string(IDS_ABOUT_HEADER);
-    std::wstring text = load_resource_string(IDS_ABOUT_TEXT);
-    HRESULT res = TaskDialog(hwnd, NOTIFIER_HANDLE_INSTANCE, title.c_str(), header.c_str(), text.c_str(),
-            TDCBF_CLOSE_BUTTON, MAKEINTRESOURCE(IDI_NOTIFICATIONICON), NULL);
-    NOTIFIER_STATE = prev;
-    return S_OK == res;
-}
-
 HRESULT CALLBACK link_clicked_callback(HWND hwnd, UINT uNotification, WPARAM wParam, LPARAM lParam, LONG_PTR dwRefData) {
     if (TDN_HYPERLINK_CLICKED != uNotification) {
         return S_OK;
@@ -201,6 +152,9 @@ HRESULT CALLBACK link_clicked_callback(HWND hwnd, UINT uNotification, WPARAM wPa
 }
 
 void show_update_dialog(HWND hwnd) {
+    if (STATE_STANDBY != NOTIFIER_STATE) {
+        return;
+    }
     NOTIFIER_STATE = STATE_UPDATE;
     TASKDIALOGCONFIG cf;
     memset(&cf, '\0', sizeof(TASKDIALOGCONFIG));
@@ -223,16 +177,6 @@ void show_update_dialog(HWND hwnd) {
     DestroyWindow(hwnd);
 }
 
-bool restore_tooltip(HWND hwnd) {
-    NOTIFYICONDATA nid;
-    memset(&nid, '\0', sizeof(NOTIFYICONDATA));
-    nid.cbSize = sizeof(NOTIFYICONDATA);
-    nid.hWnd = hwnd;
-    nid.uID = NOTIFIER_ICON_UID;
-    nid.uFlags = NIF_SHOWTIP;
-    return Shell_NotifyIcon(NIM_MODIFY, &nid);
-}
-
 LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case WM_CREATE: {
@@ -240,61 +184,19 @@ LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             if (!success) {
                 return -1;
             }
-            NOTIFIER_STATE = STATE_BALLOON;
-        } break;
-    case WM_COMMAND: {
-            int const wmId = LOWORD(wParam);
-            switch (wmId) {
-            case IDM_DOWNLOAD:
-                open_browser();
-                DestroyWindow(hwnd);
-                break;
-            case IDM_ABOUT: {
-                    bool success = show_about_dialog(hwnd);
-                    if (!success) {
-                        DestroyWindow(hwnd);
-                    }
-                }
-                break;
-            case IDM_CANCEL:
-                DestroyWindow(hwnd);
-                break;
-            default:
-                return DefWindowProc(hwnd, message, wParam, lParam);
-            }
         } break;
     case WMAPP_NOTIFYCALLBACK:
         switch (LOWORD(lParam)) {
-            case WM_MOUSEMOVE:
-                if (STATE_BALLOON == NOTIFIER_STATE) {
-                    NOTIFIER_STATE = STATE_HOVERED;
-                }
-                break;
             case NIN_SELECT:
-                if (STATE_UPDATE != NOTIFIER_STATE && STATE_ABOUT != NOTIFIER_STATE) {
-                    show_update_dialog(hwnd);
-                }
-                break;
             case NIN_BALLOONUSERCLICK:
-                if (STATE_BALLOON == NOTIFIER_STATE || STATE_CLICKED == NOTIFIER_STATE) {
-                    show_update_dialog(hwnd);
-                } else if (STATE_HOVERED == NOTIFIER_STATE) {
-                    NOTIFIER_STATE = STATE_CLICKED;
-                }
+                show_update_dialog(hwnd);
                 break;
             case NIN_BALLOONTIMEOUT:
-                if (STATE_BALLOON == NOTIFIER_STATE) {
+                if (STATE_STANDBY == NOTIFIER_STATE) {
                     DestroyWindow(hwnd);
                 }
                 break;
             case WM_CONTEXTMENU:
-                if (STATE_UPDATE != NOTIFIER_STATE && STATE_ABOUT != NOTIFIER_STATE) {
-                    restore_tooltip(hwnd);
-                    bool success = show_context_menu(hwnd, LOWORD(wParam), HIWORD(wParam));
-                    if (!success) {
-                        DestroyWindow(hwnd);
-                    }
-                }
                 break;
         } break;
     case WM_DESTROY:
