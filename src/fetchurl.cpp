@@ -23,7 +23,7 @@
 
 #include "fetchurl.hpp"
 
-#include <cstdint>
+#include <stdint.h>
 #include <cstdlib>
 #include <cstring>
 #include <vector>

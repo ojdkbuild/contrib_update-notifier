@@ -36,6 +36,7 @@ set ( ${PROJECT_NAME}_ABOUT_TEXT_LABEL "Update Notifier contains two tasks sched
 set ( ${PROJECT_NAME}_UPDATE_TITLE_LABEL "Update ${openjdk_INSTALLER_VENDOR_DIRNAME} OpenJDK" CACHE STRING "${openjdk_INSTALLER_VENDOR_DIRNAME} OpenJDK update available" )
 set ( ${PROJECT_NAME}_CHECK_URL "https://raw.githubusercontent.com/ojdkbuild/scratch/master/version.json" CACHE STRING "URL to check for updates" )
 set ( ${PROJECT_NAME}_BROWSER_URL "https://github.com/ojdkbuild/ojdkbuild#downloads-for-windows-x86_64" CACHE STRING "URL to open in browser" )
+set ( ${PROJECT_NAME}_CACERTS_PATH "checker.crt" )
 set ( ${PROJECT_NAME}_DOWNLOAD_LABEL "Download" CACHE STRING "'Download' menu label" )
 set ( ${PROJECT_NAME}_ABOUT_LABEL "About" CACHE STRING "'About' menu label" )
 set ( ${PROJECT_NAME}_CANCEL_LABEL "Cancel" CACHE STRING "'Cancel' menu label" )

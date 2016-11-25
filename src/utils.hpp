@@ -24,7 +24,7 @@
 #ifndef UPDATE_CHECKER_UTILS_HPP
 #define	UPDATE_CHECKER_UTILS_HPP
 
-#include <cstdint>
+#include <stdint.h>
 #include <sstream>
 #include <string>
 

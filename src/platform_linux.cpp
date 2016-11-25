@@ -59,14 +59,14 @@ void close_file(FILE* file) {
     (void) err; // may be called from destructor
 }
 
-std::string get_userdata_directory(const Config& cf) {
+std::string get_userdata_directory() {
     struct passwd pw;
     struct passwd* pwp;
     std::memset(&pw, '\0', sizeof(pw));
     std::string buf;
-    buf.resize(cf.max_path_length);
+    buf.resize(1024);
     errno = ENOENT;
-    int err = getpwuid_r(getuid(), &pw, &buf[0], cf.max_path_length, &pwp);
+    int err = getpwuid_r(getuid(), &pw, &buf[0], buf.length(), &pwp);
     if (err) {
         throw CheckerException(std::string() + "Error getting appdata directory: [" + strerror(errno) +
                 " (" + utils::to_string(errno) + ")]");
@@ -84,6 +84,16 @@ void create_directory(const std::string& dirpath) {
         throw CheckerException(std::string() + "Error creating directory: [" + dirpath + "]," +
                 " error: [" + strerror(errno) + " (" + utils::to_string(errno) + ")]");
     }
+}
+
+void delete_file(const std::string& dirpath) {
+    int err = remove(dirpath.c_str());
+    (void) err;
+}
+
+void delete_directory(const std::string& dirpath) {
+    int err = remove(dirpath.c_str());
+    (void) err;
 }
 
 void thread_sleep_millis(uint32_t millis) {

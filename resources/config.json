@@ -33,7 +33,7 @@
     "curl_require_tls": true,
     "curl_ssl_verifyhost": true,
     "curl_ssl_verifypeer": true,
-    "curl_cainfo_filename": "checker.crt",
+    "curl_cainfo_filename": "${${PROJECT_NAME}_CACERTS_PATH}",
     "curl_crlfile_filename": "",
     "curl_ssl_cipher_list": ""
 }

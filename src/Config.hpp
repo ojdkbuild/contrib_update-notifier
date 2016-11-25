@@ -146,16 +146,16 @@ public:
     curl_cainfo_filename(json.get_string("curl_cainfo_filename")),
     curl_crlfile_filename(json.get_string("curl_crlfile_filename")),
     curl_ssl_cipher_list(json.get_string("curl_ssl_cipher_list")) { 
-        if (!curl_sslcert_filename.empty()) {
+        if (!curl_sslcert_filename.empty() && '/' != curl_sslcert_filename[0]) {
             curl_sslcert_filename.insert(0, appdir);
         }
-        if (!curl_sslkey_filename.empty()) {
+        if (!curl_sslkey_filename.empty() && '/' != curl_sslkey_filename[0]) {
             curl_sslkey_filename.insert(0, appdir);
         }
-        if (!curl_cainfo_filename.empty()) {
+        if (!curl_cainfo_filename.empty() && '/' != curl_cainfo_filename[0]) {
             curl_cainfo_filename.insert(0, appdir);
         }
-        if (!curl_crlfile_filename.empty()) {
+        if (!curl_crlfile_filename.empty() && '/' != curl_crlfile_filename[0]) {
             curl_crlfile_filename.insert(0, appdir);
         }
     }
