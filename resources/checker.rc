@@ -32,12 +32,12 @@ BEGIN
         BLOCK "040904E4"
         BEGIN
             VALUE "CompanyName", "${${PROJECT_NAME}_COMPANY_NAME_LABEL}"
-            VALUE "FileDescription", "Update Checker Application"
+            VALUE "FileDescription", "${openjdk_INSTALLER_VENDOR_DIRNAME} OpenJDK Update"
             VALUE "FileVersion", "${${PROJECT_NAME}_FILE_VERSION}"
             VALUE "InternalName", "checker"
             VALUE "LegalCopyright", "${${PROJECT_NAME}_COMPANY_NAME_LABEL}"
             VALUE "OriginalFilename", "checker.exe"
-            VALUE "ProductName", "Update Checker Application"
+            VALUE "ProductName", "${openjdk_INSTALLER_VENDOR_DIRNAME} OpenJDK Update"
             VALUE "ProductVersion", "${${PROJECT_NAME}_PRODUCT_VERSION}"
         END
     END

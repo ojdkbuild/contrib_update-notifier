@@ -144,8 +144,10 @@ HRESULT CALLBACK link_clicked_callback(HWND hwnd, UINT uNotification, WPARAM wPa
     }
     HINSTANCE res = ShellExecuteW(NULL, NULL, reinterpret_cast<LPCTSTR> (lParam), NULL, NULL, SW_SHOW);
     bool success = reinterpret_cast<int> (res) > 32;
-    if (success) {
-        TaskDialog(hwnd, NOTIFIER_HANDLE_INSTANCE, L"1", L"2", L"", TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, NULL);
+    if (!success) {
+        std::wstring title = load_resource_string(IDS_BROWSER_ERROR_TITLE);
+        std::wstring text = load_resource_string(IDS_BROWSER_ERROR_TEXT);
+        TaskDialog(hwnd, NOTIFIER_HANDLE_INSTANCE, title.c_str(), text.c_str(), L"", TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, NULL);
     }
     DestroyWindow(hwnd);
     return S_OK;
@@ -162,7 +164,9 @@ void show_update_dialog(HWND hwnd) {
     cf.hwndParent = hwnd;
     cf.dwFlags = TDF_ENABLE_HYPERLINKS | TDF_EXPAND_FOOTER_AREA | TDF_ALLOW_DIALOG_CANCELLATION | TDF_SIZE_TO_CONTENT;
     cf.hInstance = NOTIFIER_HANDLE_INSTANCE;
-    cf.pszFooter = L"<a href=\"http://developers.redhat.com/products/openjdk/\">[TODO] http://developers.redhat.com/products/openjdk/</a>";
+    std::wstring url = load_resource_string(IDS_BROWSER_URL);
+    std::wstring link = std::wstring() + L"<a href=\"" + url + L"\">" + url + L"</a>";
+    cf.pszFooter = link.c_str();
     cf.pfCallback = link_clicked_callback;
     std::wstring title = load_resource_string(IDS_UPDATE_TITLE);
     cf.pszWindowTitle = title.c_str();
@@ -170,7 +174,8 @@ void show_update_dialog(HWND hwnd) {
     cf.pszMainInstruction = NOTIFIER_UPDATE_HEADER.c_str();
     cf.pszFooterIcon = MAKEINTRESOURCE(IDI_NOTIFICATIONICON); 
     cf.pszExpandedInformation = NOTIFIER_UPDATE_TEXT.c_str();
-    cf.pszExpandedControlText = L"[TODO] To proceed with download and installation please follow a link below";
+    std::wstring proceed = load_resource_string(IDS_UPDATE_PROCEED);
+    cf.pszExpandedControlText = proceed.c_str();
     cf.cxWidth = 0;
     cf.dwCommonButtons = TDCBF_CANCEL_BUTTON;
     HRESULT res = TaskDialogIndirect(&cf, NULL, NULL, NULL);
