@@ -208,6 +208,7 @@ int main(int argc, char** argv) {
             std::string appdata_dir = ch::platform::get_userdata_directory();
             std::string vendor_dir = appdata_dir + cf.vendor_name;
             ch::platform::delete_file(vendor_dir + "/" + cf.application_name + "/version.json");
+            ch::platform::delete_file(vendor_dir + "/" + cf.application_name + "/trace.json");
             ch::platform::delete_directory(vendor_dir + "/" + cf.application_name);
             ch::platform::delete_directory(vendor_dir);
             return 0;
