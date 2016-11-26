@@ -41,6 +41,21 @@ namespace checker {
 namespace { // anonymous
 
 
+class CurlGlobalInitializer {
+public:
+    CurlGlobalInitializer() {
+        CURLcode err_init = curl_global_init(CURL_GLOBAL_SSL);
+        if (CURLE_OK != err_init) {
+            throw CheckerException("'curl_global_init' error: [" + std::string(curl_easy_strerror(err_init)) + "]");
+        }
+    }
+    
+    ~CurlGlobalInitializer() {
+        curl_global_cleanup();
+    }
+};
+
+
 class CurlMultiHolder {
     CURLM* curlm;
     
@@ -512,6 +527,9 @@ void apply_curlopts(FetchCtx& ctx) {
 } // namespace
 
 JsonRecord fetchurl(const Config& cf) {
+    // init/destroy, this method can be entered only once
+    CurlGlobalInitializer global();
+    
     // multi
     CurlMultiHolder multi(curl_multi_init());
     setmopt_uint32(multi, CURLMOPT_MAXCONNECTS, cf.curl_max_connects);
