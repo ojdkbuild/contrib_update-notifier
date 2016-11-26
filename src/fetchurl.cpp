@@ -44,7 +44,7 @@ namespace { // anonymous
 class CurlGlobalInitializer {
 public:
     CurlGlobalInitializer() {
-        CURLcode err_init = curl_global_init(CURL_GLOBAL_SSL);
+        CURLcode err_init = curl_global_init(CURL_GLOBAL_ALL);
         if (CURLE_OK != err_init) {
             throw CheckerException("'curl_global_init' error: [" + std::string(curl_easy_strerror(err_init)) + "]");
         }
@@ -456,6 +456,7 @@ size_t headers_cb(char* buffer, size_t size, size_t nitems, void* ctx) /* noexce
 
 void apply_curlopts(FetchCtx& ctx) {
     // url
+    ctx.cf.trace("setting cURL params, url: [" + ctx.cf.remote_version_url + "]");
     setopt_string(ctx.curl, CURLOPT_URL, ctx.cf.remote_version_url);
 
     // method
@@ -528,7 +529,7 @@ void apply_curlopts(FetchCtx& ctx) {
 
 JsonRecord fetchurl(const Config& cf) {
     // init/destroy, this method can be entered only once
-    CurlGlobalInitializer global();
+    CurlGlobalInitializer global;
     
     // multi
     CurlMultiHolder multi(curl_multi_init());

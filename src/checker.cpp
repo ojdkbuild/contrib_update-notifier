@@ -238,6 +238,7 @@ int main(int argc, char** argv) {
             }
             dump_trace(cf);
         } catch(const std::exception& e) {
+            cf.trace(std::string() + "ERROR: " + e.what());
             std::cerr << ch::platform::current_datetime() << " ERROR: " << e.what() << std::endl;
             dump_trace(cf);
             return 1;
