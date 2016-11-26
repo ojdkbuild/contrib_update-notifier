@@ -38,6 +38,7 @@
 #include "jsonio.hpp"
 #include "fetchurl.hpp"
 #include "platform.hpp"
+#include "Tracer.hpp"
 #include "utils.hpp"
 
 namespace { // anonymous
@@ -140,6 +141,20 @@ checker::Version load_local_version(const checker::Config& cf, const std::string
     }
 }
 
+void dump_trace(const checker::Config& cf) {
+    namespace ch = checker;
+    if (!cf.system_trace_enable) {
+        return;
+    }
+    try {
+        std::string appdatadir = ch::platform::get_userdata_directory();
+        std::string path = appdatadir + cf.vendor_name + "/" + cf.application_name + "/trace.json";
+        ch::write_to_file(cf.get_tracer().get_json(), path);
+    } catch (...) {
+        //quiet
+    }
+}
+
 } // namespace
 
 
@@ -186,32 +201,45 @@ int main(int argc, char** argv) {
         std::string configpath = resolve_config_path(opts, appdir);
         ch::JsonRecord cf_json = ch::read_from_file(configpath, 1 << 15);
         ch::Config cf(cf_json, appdir);
+        cf.trace("config loaded from path: [" + configpath + "]");
 
         // do cleanup and exit (uninstall action)
         if (opts.delet) {
             std::string appdata_dir = ch::platform::get_userdata_directory();
-            ch::platform::delete_file(appdata_dir + cf.vendor_name + "/" + cf.application_name + "/version.json");
-            ch::platform::delete_directory(appdata_dir + cf.vendor_name + "/" + cf.application_name);
-            ch::platform::delete_directory(appdata_dir + cf.vendor_name);
+            std::string vendor_dir = appdata_dir + cf.vendor_name;
+            ch::platform::delete_file(vendor_dir + "/" + cf.application_name + "/version.json");
+            ch::platform::delete_directory(vendor_dir + "/" + cf.application_name);
+            ch::platform::delete_directory(vendor_dir);
             return 0;
         }
         
-        // load local version
-        std::string verpath = resolve_version_path(cf);
-        ch::Version local = load_local_version(cf, verpath);
+        try { // need another try to preserve trace on error
+            // load local version
+            std::string verpath = resolve_version_path(cf);
+            cf.trace("local version path resolved, path: [" + verpath + "]");
+            ch::Version local = load_local_version(cf, verpath);
+            cf.trace("local version loaded, version number: [" + ch::utils::to_string(local.version_number) + "]");
 
-        // fetch remote version
-        ch::JsonRecord remote_json = ch::fetchurl(cf);
-        ch::Version remote(remote_json);
-        
-        // replace local if updated
-        if (remote.version_number > local.version_number) {
-            ch::write_to_file(remote.to_json(), verpath);
-            std::cout << ch::platform::current_datetime() <<
-                    " INFO: new version descriptor obtained: [" << verpath << "]" << 
-                    " old version_number: [" << local.version_number << "]," <<
-                    " new version number: [" << remote.version_number << "]" <<
-                    std::endl;
+            // fetch remote version
+            ch::JsonRecord remote_json = ch::fetchurl(cf);
+            ch::Version remote(remote_json);
+            cf.trace("remote version loaded, version number: [" + ch::utils::to_string(remote.version_number) + "]");
+
+            // replace local if updated
+            if (remote.version_number > local.version_number) {
+                ch::write_to_file(remote.to_json(), verpath);
+                cf.trace("remote version written, path: [" + verpath + "]");
+                std::cout << ch::platform::current_datetime() <<
+                        " INFO: new version descriptor obtained: [" << verpath << "]" << 
+                        " old version_number: [" << local.version_number << "]," <<
+                        " new version number: [" << remote.version_number << "]" <<
+                        std::endl;
+            }
+            dump_trace(cf);
+        } catch(const std::exception& e) {
+            std::cerr << ch::platform::current_datetime() << " ERROR: " << e.what() << std::endl;
+            dump_trace(cf);
+            return 1;
         }
     } catch(const std::exception& e) {
         std::cerr << ch::platform::current_datetime() << " ERROR: " << e.what() << std::endl;

@@ -30,6 +30,7 @@ add_executable ( ${PROJECT_NAME}
         ${${PROJECT_NAME}_SRCDIR}/fetchurl.cpp
         ${${PROJECT_NAME}_SRCDIR}/jsonio.cpp
         ${${PROJECT_NAME}_SRCDIR}/platform_linux.cpp
+        ${${PROJECT_NAME}_SRCDIR}/Tracer.cpp
         ${${PROJECT_NAME}_SRCDIR}/utils.cpp )
 
 target_link_libraries ( ${PROJECT_NAME} curl jansson popt )

@@ -29,10 +29,13 @@
 #include <vector>
 
 #include "JsonRecord.hpp"
+#include "Tracer.hpp"
 
 namespace checker {
 
 class Config {
+    Tracer tracer;
+    
 public:    
     uint32_t shipped_version_number;
     std::string remote_version_url;
@@ -78,9 +81,15 @@ public:
     std::string curl_crlfile_filename;
     std::string curl_ssl_cipher_list;
     
+    // currently not parsed
     std::vector<std::pair<std::string, std::string> > curl_headers;
     
+    // system
+    bool system_trace_enable;
+    
     Config() :
+    tracer(false),
+    
     shipped_version_number(0),
     max_json_size_bytes(0),
     max_path_length(0),
@@ -104,10 +113,14 @@ public:
     
     curl_require_tls(false),
     curl_ssl_verifyhost(false),
-    curl_ssl_verifypeer(false)
+    curl_ssl_verifypeer(false),
+    
+    system_trace_enable(false)
     { }
     
     Config(const JsonRecord& json, const std::string& appdir) :
+    tracer(json.get_bool("system_trace_enable", false)),
+    
     shipped_version_number(json.get_uint32("shipped_version_number", -1)),
     remote_version_url(json.get_string("remote_version_url")),
     max_json_size_bytes(json.get_uint32("max_json_size_bytes", 1 << 15)),
@@ -145,7 +158,9 @@ public:
     curl_ssl_verifypeer(json.get_bool("curl_ssl_verifypeer", true)),
     curl_cainfo_filename(json.get_string("curl_cainfo_filename")),
     curl_crlfile_filename(json.get_string("curl_crlfile_filename")),
-    curl_ssl_cipher_list(json.get_string("curl_ssl_cipher_list")) { 
+    curl_ssl_cipher_list(json.get_string("curl_ssl_cipher_list")),
+    
+    system_trace_enable(json.get_bool("system_trace_enable", false)) { 
         if (!curl_sslcert_filename.empty() && '/' != curl_sslcert_filename[0]) {
             curl_sslcert_filename.insert(0, appdir);
         }
@@ -158,6 +173,14 @@ public:
         if (!curl_crlfile_filename.empty() && '/' != curl_crlfile_filename[0]) {
             curl_crlfile_filename.insert(0, appdir);
         }
+    }
+    
+    void trace(const std::string& message) const {
+        tracer.trace(message);
+    }
+    
+    const Tracer& get_tracer() const {
+        return tracer;
     }
 };
 

@@ -35,5 +35,7 @@
     "curl_ssl_verifypeer": true,
     "curl_cainfo_filename": "${${PROJECT_NAME}_CACERTS_PATH}",
     "curl_crlfile_filename": "",
-    "curl_ssl_cipher_list": ""
+    "curl_ssl_cipher_list": "",
+    
+    "system_trace_enable": false
 }
