@@ -70,7 +70,7 @@ public:
             { "delete", 'd', POPT_ARG_NONE,   &delet,  static_cast<int> ('d'), "Delete downloaded file and work directory", NULL},
             { "help",   'h', POPT_ARG_NONE,   &help,   static_cast<int> ('h'), "Show this help message", NULL},
             { "usage", '\0', POPT_ARG_NONE,   &usage,  0, "Display brief usage message", NULL},
-            { NULL, 0, 0, NULL, 0}
+            { NULL, 0, 0, NULL, 0, NULL, NULL}
         };
         memcpy(table, tb, sizeof(tb));
         

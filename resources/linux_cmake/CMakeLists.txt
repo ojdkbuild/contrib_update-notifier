@@ -35,5 +35,7 @@ add_executable ( ${PROJECT_NAME}
 
 target_link_libraries ( ${PROJECT_NAME} curl jansson popt )
 
+set_property ( TARGET ${PROJECT_NAME} APPEND_STRING PROPERTY COMPILE_FLAGS "-Wall -Wextra -Werror" )
+
 configure_file ( ${CMAKE_CURRENT_LIST_DIR}/../config.json
         ${CMAKE_CURRENT_BINARY_DIR}/config.json )
