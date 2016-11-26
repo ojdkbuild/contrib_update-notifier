@@ -392,7 +392,7 @@ void fill_buffer(FetchCtx& ctx) {
     }
 }
 
-size_t write_headers(FetchCtx& ctx, char* buffer, size_t size, size_t nitems) {
+size_t write_headers(FetchCtx& ctx, char* /* buffer */, size_t size, size_t nitems) {
     ctx.headers_received = true;
     ctx.response_code = getinfo_long(ctx.curl, CURLINFO_RESPONSE_CODE);
     return size * nitems;
@@ -430,7 +430,7 @@ size_t read_cb(void* buffer, size_t size, void* ctx) /* noexcept */ {
         return read(*fctx, buffer, size);
     } catch (const std::exception& e) {
         fctx->append_error(e.what());
-        return -1;
+        return static_cast<size_t>(-1);
     }
 }
 
@@ -440,7 +440,7 @@ size_t write_cb(char* buffer, size_t size, size_t nitems, void* ctx) /* noexcept
         return write(*fctx, buffer, size, nitems);
     } catch (const std::exception& e) {
         fctx->append_error(e.what());
-        return -1;
+        return static_cast<size_t>(-1);
     }
 }
 
@@ -450,7 +450,7 @@ size_t headers_cb(char* buffer, size_t size, size_t nitems, void* ctx) /* noexce
         return write_headers(*fctx, buffer, size, nitems);
     } catch (const std::exception& e) {
         fctx->append_error(e.what());
-        return -1;
+        return static_cast<size_t>(-1);
     }
 }
 

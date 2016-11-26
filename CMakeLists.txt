@@ -86,6 +86,8 @@ target_include_directories( checker BEFORE PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/src
         ${checker_DEPS_PC_INCLUDE_DIRS} )
 
+target_compile_options ( checker PRIVATE /W4 /WX )
+
 target_link_libraries ( checker
         lookaside_jansson
         lookaside_popt
@@ -122,6 +124,8 @@ add_executable ( notifier WIN32
 target_include_directories( notifier BEFORE PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/src
         ${notifier_DEPS_PC_INCLUDE_DIRS} )
+
+target_compile_options ( notifier PRIVATE /W4 /WX )
 
 target_link_libraries ( notifier
         lookaside_jansson

@@ -59,7 +59,7 @@ State NOTIFIER_STATE = STATE_STANDBY;
 std::wstring load_resource_string(UINT id) {
     std::wstring str;
     str.resize(NOTIFIER_MAX_RC_LEN);
-    int loaded = LoadStringW(NOTIFIER_HANDLE_INSTANCE, id, &str.front(), str.length());
+    int loaded = LoadStringW(NOTIFIER_HANDLE_INSTANCE, id, &str.front(), static_cast<int>(str.length()));
     if (loaded > 0) {
         str.resize(loaded);
         return str;
@@ -87,6 +87,7 @@ bool load_input_json() {
         uint32_t vnum = ch::utils::parse_uint32(vnumstr);
         return ver.version_number > vnum;
     } catch (const std::exception& e) {
+        (void) e;
         return false;
     }
 }
@@ -123,7 +124,7 @@ bool add_notification(HWND hwnd) {
     BOOL success = Shell_NotifyIcon(NIM_ADD, &nid);
     if (success) {
         nid.uVersion = NOTIFYICON_VERSION_4;
-        return Shell_NotifyIcon(NIM_SETVERSION, &nid);
+        return 0 != Shell_NotifyIcon(NIM_SETVERSION, &nid);
     } else {
         return false;
     }
@@ -135,10 +136,10 @@ bool delete_notification(HWND hwnd) {
     nid.cbSize = sizeof(NOTIFYICONDATA);
     nid.hWnd = hwnd;
     nid.uID = NOTIFIER_ICON_UID;
-    return Shell_NotifyIcon(NIM_DELETE, &nid);
+    return 0 != Shell_NotifyIcon(NIM_DELETE, &nid);
 }
 
-HRESULT CALLBACK link_clicked_callback(HWND hwnd, UINT uNotification, WPARAM wParam, LPARAM lParam, LONG_PTR dwRefData) {
+HRESULT CALLBACK link_clicked_callback(HWND hwnd, UINT uNotification, WPARAM /* wParam */, LPARAM lParam, LONG_PTR /* dwRefData */) {
     if (TDN_HYPERLINK_CLICKED != uNotification) {
         return S_OK;
     }
@@ -179,6 +180,7 @@ void show_update_dialog(HWND hwnd) {
     cf.cxWidth = 0;
     cf.dwCommonButtons = TDCBF_CANCEL_BUTTON;
     HRESULT res = TaskDialogIndirect(&cf, NULL, NULL, NULL);
+    (void) res;
     DestroyWindow(hwnd);
 }
 

@@ -121,7 +121,7 @@ public:
     Config(const JsonRecord& json, const std::string& appdir) :
     tracer(json.get_bool("system_trace_enable", false)),
     
-    shipped_version_number(json.get_uint32("shipped_version_number", -1)),
+    shipped_version_number(json.get_uint32("shipped_version_number", static_cast<uint32_t>(-1))),
     remote_version_url(json.get_string("remote_version_url")),
     max_json_size_bytes(json.get_uint32("max_json_size_bytes", 1 << 15)),
     version_filename(json.get_string("version_filename")),

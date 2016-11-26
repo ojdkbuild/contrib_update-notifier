@@ -64,7 +64,7 @@ FILE* FileDescriptor::get() {
 
 size_t FileDescriptor::read_cb(void* buffer, size_t size, void* self) {
     if (!self) {
-        return -1;
+        return static_cast<size_t>(-1);
     }
     FileDescriptor* pself = static_cast<FileDescriptor*>(self);
     return pself->read(buffer, size);
@@ -75,13 +75,14 @@ int FileDescriptor::write_cb(const char* buffer, size_t buflen, void* self) {
         return -1;
     }
     FileDescriptor* pself = static_cast<FileDescriptor*> (self);
-    return pself->write(buffer, buflen);
+    size_t res = pself->write(buffer, buflen);
+    return static_cast<int>(res);
 }
 
 size_t FileDescriptor::read(void* buffer, size_t size) {
     if (!buffer) {
         append_error("'null' buffer specified for 'read', filepath: [" + this->filepath + "]");
-        return -1;
+        return static_cast<size_t>(-1);
     }
     if (feof(this->fd)) {
         return 0;
@@ -90,13 +91,13 @@ size_t FileDescriptor::read(void* buffer, size_t size) {
     if (rnum != size && !feof(this->fd)) {
         append_error(std::string() + "'read' error: [" + strerror(errno) + "]," + 
                 " filepath: [" + this->filepath + "]");
-        return -1;
+        return static_cast<size_t>(-1);
     }
     this->bytes_read += rnum;
     if (this->bytes_read > this->max_read_bytes) {
         append_error("Read limit exceeded: [" + utils::to_string(this->max_read_bytes) + "]," + 
                 " filepath: [" + this->filepath + "]");
-        return -1;
+        return static_cast<size_t>(-1);
     }
     return rnum;
 }
@@ -104,13 +105,13 @@ size_t FileDescriptor::read(void* buffer, size_t size) {
 size_t FileDescriptor::write(const char* buffer, size_t buflen) {
     if (!buffer) {
         append_error("'null' buffer specified for 'write', filepath: [" + this->filepath + "]");
-        return -1;
+        return static_cast<size_t>(-1);
     }
     size_t wnum = fwrite(buffer, 1, buflen, this->fd);
     if (wnum != buflen) {
         append_error(std::string() + "'write' error: [" + strerror(errno) + "]," + 
                 " filepath: [" + this->filepath + "]");
-        return -1;
+        return static_cast<size_t>(-1);
     }
     return 0;
 }
