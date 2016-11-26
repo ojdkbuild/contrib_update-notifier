@@ -37,6 +37,8 @@ class Tracer {
     mutable uint32_t counter;
     
 public:
+    Tracer();
+
     Tracer(bool enabled);
 
     // Pre-C++11 move logic
@@ -45,6 +47,10 @@ public:
     void trace(const std::string& message) const;
     
     const JsonRecord& get_json() const;
+
+    bool is_enabled() const;
+
+    void set_enabled(bool value);
     
 private:
     Tracer& operator=(const Tracer& other);

@@ -118,6 +118,7 @@ add_executable ( notifier WIN32
         src/JsonRecord.cpp
         src/jsonio.cpp
         src/platform_windows.cpp
+        src/Tracer.cpp
         src/utils.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/notifier.rc )
 

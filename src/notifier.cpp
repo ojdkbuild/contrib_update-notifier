@@ -34,6 +34,7 @@
 #include "JsonRecord.hpp"
 #include "Version.hpp"
 #include "platform.hpp"
+#include "Tracer.hpp"
 #include "utils.hpp"
 
 namespace { // anonymous
@@ -54,6 +55,8 @@ std::wstring NOTIFIER_UPDATE_TEXT;
 std::wstring NOTIFIER_BMP_ICON_PATH;
 // we should be fine without sync in STA mode
 State NOTIFIER_STATE = STATE_STANDBY;
+// tracing
+ch::Tracer TRACER;
 
 
 std::wstring load_resource_string(UINT id) {
@@ -64,7 +67,24 @@ std::wstring load_resource_string(UINT id) {
         str.resize(loaded);
         return str;
     } else {
+        TRACER.trace("error loading resource, uid: [" + ch::utils::to_string(id) + "]");
         return L"ERROR_LOAD_RESOURCE";
+    }
+}
+
+void dump_trace() {
+    if (!TRACER.is_enabled()) {
+        return;
+    }
+    try {
+        std::string appdatadir = ch::platform::get_userdata_directory();
+        std::string vendorname = ch::utils::narrow(load_resource_string(IDS_VENDOR_DIRNAME));
+        std::string appname = ch::utils::narrow(load_resource_string(IDS_APP_DIRNAME));
+        std::string path = appdatadir + vendorname + "/" + appname + "/trace.json";
+        ch::write_to_file(TRACER.get_json(), path);
+        TRACER.set_enabled(false);
+    } catch(...) {
+        // quiet
     }
 }
 
@@ -74,25 +94,35 @@ bool load_input_json() {
         std::string vendorname = ch::utils::narrow(load_resource_string(IDS_VENDOR_DIRNAME));
         std::string appname = ch::utils::narrow(load_resource_string(IDS_APP_DIRNAME));
         std::string path = appdatadir + vendorname + "/" + appname + "/version.json";
+        TRACER.trace("loading version from file, path: [" + path + "]");
         ch::JsonRecord json = ch::read_from_file(path, NOTIFIER_MAX_INPUT_JSON_LEN);
         ch::Version ver(json);
+        TRACER.trace("version loaded successfully");
+        TRACER.trace("version contents, balloon_text: [" + ver.ui_balloon_text + "]");
         NOTIFIER_BALLOON_TEXT = ch::utils::widen(ver.ui_balloon_text);
+        TRACER.trace("version contents, update_header: [" + ver.ui_update_header + "]");
         NOTIFIER_UPDATE_HEADER = ch::utils::widen(ver.ui_update_header);
+        TRACER.trace("version contents, update_text: [" + ver.ui_update_text + "]");
         NOTIFIER_UPDATE_TEXT = ch::utils::widen(ver.ui_update_text);
         std::string exepath = ch::platform::current_executable_path();
         std::string exedir = ch::utils::strip_filename(exepath);
-        NOTIFIER_BMP_ICON_PATH = ch::utils::widen(exedir + "icon.bmp");
+        std::string iconpath = exedir + "icon.bmp";
+        NOTIFIER_BMP_ICON_PATH = ch::utils::widen(iconpath);
+        TRACER.trace("balloon icon resolved, path: [" + iconpath + "]");
         std::wstring vnumwstr = load_resource_string(IDS_SHIPPED_VERSION_NUMBER);
         std::string vnumstr = ch::utils::narrow(vnumwstr);
         uint32_t vnum = ch::utils::parse_uint32(vnumstr);
+        TRACER.trace("version contents, version_number: [" + ch::utils::to_string(ver.version_number) + "]");
+        TRACER.trace("shipped version extracted, version_number: [" + vnumstr + "]");
         return ver.version_number > vnum;
     } catch (const std::exception& e) {
-        (void) e;
+        TRACER.trace(std::string() + "ERROR: " + e.what());
         return false;
     }
 }
 
 bool add_notification(HWND hwnd) {
+    TRACER.trace("is due to add notification");
     NOTIFYICONDATA nid;
     memset(&nid, '\0', sizeof(NOTIFYICONDATA));
     nid.cbSize = sizeof(NOTIFYICONDATA);
@@ -102,19 +132,23 @@ bool add_notification(HWND hwnd) {
     nid.uCallbackMessage = WMAPP_NOTIFYCALLBACK;
     HRESULT err_icon = LoadIconMetric(NOTIFIER_HANDLE_INSTANCE, MAKEINTRESOURCE(IDI_NOTIFICATIONICON), LIM_SMALL, &nid.hIcon);
     if (S_OK != err_icon) {
+        TRACER.trace("'LoadIconMetric' fail, return: [" + ch::utils::to_string(err_icon) + "]");
         return false;
     }
     nid.hBalloonIcon = static_cast<HICON>(LoadImageW(NULL, NOTIFIER_BMP_ICON_PATH.c_str(), IMAGE_BITMAP, 128, 128, LR_LOADFROMFILE));
     if (NULL == nid.hBalloonIcon) {
+        TRACER.trace("'LoadImageW' fail, error: [" + ch::utils::errcode_to_string(GetLastError()) + "]");
         return false;
     }
     int err_tooltip = LoadStringW(NOTIFIER_HANDLE_INSTANCE, IDS_TOOLTIP, nid.szTip, ARRAYSIZE(nid.szTip));
     if (0 == err_tooltip) {
+        TRACER.trace("'LoadStringW' for tooltip fail, error: [" + ch::utils::errcode_to_string(GetLastError()) + "]");
         return false;
     }
     nid.dwInfoFlags = NIIF_USER | NIIF_NOSOUND | NIIF_RESPECT_QUIET_TIME;
     int err_title = LoadStringW(NOTIFIER_HANDLE_INSTANCE, IDS_BALLOON_TITLE, nid.szInfoTitle, ARRAYSIZE(nid.szInfoTitle));
     if (0 == err_title) {
+        TRACER.trace("'LoadStringW' for title fail, error: [" + ch::utils::errcode_to_string(GetLastError()) + "]");
         return false;
     }
     errno_t err_info = wcscpy_s(nid.szInfo, ARRAYSIZE(nid.szInfo), NOTIFIER_BALLOON_TEXT.c_str());
@@ -124,28 +158,38 @@ bool add_notification(HWND hwnd) {
     BOOL success = Shell_NotifyIcon(NIM_ADD, &nid);
     if (success) {
         nid.uVersion = NOTIFYICON_VERSION_4;
-        return 0 != Shell_NotifyIcon(NIM_SETVERSION, &nid);
+        bool res = 0 != Shell_NotifyIcon(NIM_SETVERSION, &nid);
+        TRACER.trace("'Shell_NotifyIconW' version, result: [" + ch::utils::to_string(res) + "]");
+        return res;
     } else {
+        TRACER.trace("'Shell_NotifyIconW' main fail");
         return false;
     }
 }
 
 bool delete_notification(HWND hwnd) {
+    TRACER.trace("is due to delete notification");
     NOTIFYICONDATA nid;
     memset(&nid, '\0', sizeof(NOTIFYICONDATA));
     nid.cbSize = sizeof(NOTIFYICONDATA);
     nid.hWnd = hwnd;
     nid.uID = NOTIFIER_ICON_UID;
-    return 0 != Shell_NotifyIcon(NIM_DELETE, &nid);
+    bool res = 0 != Shell_NotifyIcon(NIM_DELETE, &nid);
+    TRACER.trace("'Shell_NotifyIconW' delete, result: [" + ch::utils::to_string(res) + "]");
+    return res;
 }
 
 HRESULT CALLBACK link_clicked_callback(HWND hwnd, UINT uNotification, WPARAM /* wParam */, LPARAM lParam, LONG_PTR /* dwRefData */) {
     if (TDN_HYPERLINK_CLICKED != uNotification) {
+        TRACER.trace("non-proceed dialog event received, code: [" + ch::utils::to_string(uNotification) + "]");
         return S_OK;
     }
+    TRACER.trace("update proceed selected");
     HINSTANCE res = ShellExecuteW(NULL, NULL, reinterpret_cast<LPCTSTR> (lParam), NULL, NULL, SW_SHOW);
-    bool success = reinterpret_cast<int> (res) > 32;
+    int intres = reinterpret_cast<int> (res);
+    bool success = intres > 32;
     if (!success) {
+        TRACER.trace("'ShellExecuteW' fail, error: [" + ch::utils::to_string(intres) + "]");
         std::wstring title = load_resource_string(IDS_BROWSER_ERROR_TITLE);
         std::wstring text = load_resource_string(IDS_BROWSER_ERROR_TEXT);
         TaskDialog(hwnd, NOTIFIER_HANDLE_INSTANCE, title.c_str(), text.c_str(), L"", TDCBF_CLOSE_BUTTON, TD_ERROR_ICON, NULL);
@@ -156,6 +200,7 @@ HRESULT CALLBACK link_clicked_callback(HWND hwnd, UINT uNotification, WPARAM /* 
 
 void show_update_dialog(HWND hwnd) {
     if (STATE_STANDBY != NOTIFIER_STATE) {
+        TRACER.trace("additional update dialog prevented");
         return;
     }
     NOTIFIER_STATE = STATE_UPDATE;
@@ -179,14 +224,16 @@ void show_update_dialog(HWND hwnd) {
     cf.pszExpandedControlText = proceed.c_str();
     cf.cxWidth = 0;
     cf.dwCommonButtons = TDCBF_CANCEL_BUTTON;
+    TRACER.trace("is due to show update dialog");
     HRESULT res = TaskDialogIndirect(&cf, NULL, NULL, NULL);
-    (void) res;
+    TRACER.trace("update dialog closed, result: [" + ch::utils::to_string(res) + "]");
     DestroyWindow(hwnd);
 }
 
 LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case WM_CREATE: {
+            TRACER.trace("'WM_CREATE' event received");
             bool success = add_notification(hwnd);
             if (!success) {
                 return -1;
@@ -195,18 +242,27 @@ LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
     case WMAPP_NOTIFYCALLBACK:
         switch (LOWORD(lParam)) {
             case NIN_SELECT:
+                TRACER.trace("'NIN_SELECT' event received");
+                show_update_dialog(hwnd);
+                break;
             case NIN_BALLOONUSERCLICK:
+                TRACER.trace("'NIN_BALLOONUSERCLICK' event received");
                 show_update_dialog(hwnd);
                 break;
             case NIN_BALLOONTIMEOUT:
+                TRACER.trace("'NIN_BALLOONTIMEOUT' event received");
                 if (STATE_STANDBY == NOTIFIER_STATE) {
+                    TRACER.trace("'NIN_BALLOONTIMEOUT' proceed");
                     DestroyWindow(hwnd);
                 }
                 break;
             case WM_CONTEXTMENU:
+                TRACER.trace("'WM_CONTEXTMENU' event received");
+                show_update_dialog(hwnd);
                 break;
         } break;
     case WM_DESTROY:
+        TRACER.trace("'WM_DESTROY' event received");
         delete_notification(hwnd);
         PostQuitMessage(0);
         break;
@@ -219,18 +275,28 @@ LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 } // namespace
 
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /* nCmdShow */) {
+    // init tracer
+    std::wstring cline(GetCommandLineW());
+    bool verbose = L'v' == cline[cline.length() - 1] && L'-' == cline[cline.length() - 2];
+    TRACER.set_enabled(verbose);
+    TRACER.trace("tracer initialized");
     // check we are alone
     std::wstring mutex_uid = load_resource_string(IDS_INSTANCE_MUTEX_UUID);
     ch::utils::NamedMutex mutex(mutex_uid);
     if (mutex.already_taken()) {
+        TRACER.trace("another instance of notifier is already running");
+        dump_trace();
         return 0;
     }
     // fill globals
     NOTIFIER_HANDLE_INSTANCE = hInstance;
     bool err_vcheck = load_input_json();
     if (!err_vcheck) {
+        TRACER.trace("'NOGO' mode exiting");
+        dump_trace();
         return 0; // err handling is too coarse here
     }
+    TRACER.trace("'GO' mode proceeding");
     // create ui
     WNDCLASSEX wcex;
     memset(&wcex, '\0', sizeof(wcex));
@@ -241,17 +307,22 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /
     wcex.lpszClassName = NOTIFIER_WINDOW_CLASS.c_str();
     ATOM err_reg = RegisterClassExW(&wcex);
     if (0 == err_reg) {
+        TRACER.trace("'RegisterClassExW' fail, error: [" + ch::utils::errcode_to_string(GetLastError()) + "]");
+        dump_trace();
         return 1;
     }
     HWND hwnd = CreateWindowExW(0, NOTIFIER_WINDOW_CLASS.c_str(), NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL);
     if (NULL == hwnd) {
+        TRACER.trace("'CreateWindowExW' fail, error: [" + ch::utils::errcode_to_string(GetLastError()) + "]");
+        dump_trace();
         return 1;
     }
     MSG msg;
+    TRACER.trace("is due to start message loop");
     while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
     }
+    dump_trace();
     return 0;
 }
-

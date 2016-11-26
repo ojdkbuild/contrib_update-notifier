@@ -28,6 +28,11 @@
 
 namespace checker {
 
+Tracer::Tracer() :
+enabled(false),
+json(),
+counter(0) { }
+
 Tracer::Tracer(bool enabled) :
 enabled(enabled),
 json(),
@@ -53,6 +58,14 @@ void Tracer::trace(const std::string& message) const {
 
 const JsonRecord& Tracer::get_json() const {
     return json;
+}
+
+bool Tracer::is_enabled() const {
+    return enabled;
+}
+
+void Tracer::set_enabled(bool value) {
+    this->enabled = value;
 }
 
 } // namespace
