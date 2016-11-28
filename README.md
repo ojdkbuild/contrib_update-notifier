@@ -22,7 +22,6 @@ On `windows_x86_64`:
 On `linux_x86_64` (CentOS/Fedora, `checker`-only build):
 
     sudo yum install git cmake libcurl-devel popt-devel jansson-devel gcc-c++ make
-    mkdir .config
     git clone https://github.com/ojdkbuild/contrib_update-notifier.git
     cd contrib_update-notifier/
     mkdir build
