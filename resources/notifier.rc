@@ -34,12 +34,12 @@ BEGIN
         BLOCK "040904E4"
         BEGIN
             VALUE "CompanyName", "${${PROJECT_NAME}_COMPANY_NAME_LABEL}"
-            VALUE "FileDescription", "${openjdk_INSTALLER_VENDOR_DIRNAME} OpenJDK Update"
+            VALUE "FileDescription", "${${PROJECT_NAME}_FILE_DESCRIPTION_NOTIFIER}"
             VALUE "FileVersion", "${${PROJECT_NAME}_FILE_VERSION}"
             VALUE "InternalName", "notifier"
             VALUE "LegalCopyright", "${${PROJECT_NAME}_COMPANY_NAME_LABEL}"
             VALUE "OriginalFilename", "notifier.exe"
-            VALUE "ProductName", "${openjdk_INSTALLER_VENDOR_DIRNAME} OpenJDK Update"
+            VALUE "ProductName", "${${PROJECT_NAME}_FILE_DESCRIPTION_NOTIFIER}"
             VALUE "ProductVersion", "${${PROJECT_NAME}_PRODUCT_VERSION}"
         END
     END
@@ -58,7 +58,7 @@ BEGIN
     IDS_UPDATE_PROCEED "${${PROJECT_NAME}_UPDATE_PROCEED_LABEL}"
     IDS_BROWSER_URL "${${PROJECT_NAME}_BROWSER_URL}"
     IDS_SHIPPED_VERSION_NUMBER "${${PROJECT_NAME}_SHIPPED_VERSION_NUMBER}"
-    IDS_VENDOR_DIRNAME "${openjdk_INSTALLER_VENDOR_DIRNAME}"
+    IDS_VENDOR_DIRNAME "${openjdk_VENDOR_DIRNAME}"
     IDS_APP_DIRNAME "${PROJECT_NAME}"
     IDS_INSTANCE_MUTEX_UUID "${${PROJECT_NAME}_INSTANCE_MUTEX_UUID}"
     IDS_BROWSER_ERROR_TITLE "${${PROJECT_NAME}_BROWSER_ERROR_TITLE_LABEL}"

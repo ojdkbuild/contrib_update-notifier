@@ -3,7 +3,7 @@
     "remote_version_url": "${${PROJECT_NAME}_CHECK_URL}",
     "max_json_size_bytes": 32768,
     "max_path_length": 1024,
-    "vendor_name": "${openjdk_INSTALLER_VENDOR_DIRNAME}",
+    "vendor_name": "${openjdk_VENDOR_DIRNAME}",
     "application_name": "${PROJECT_NAME}",
 
     "curl_max_connects": 1,
