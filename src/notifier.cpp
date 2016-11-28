@@ -82,7 +82,6 @@ void dump_trace() {
         std::string appname = ch::utils::narrow(load_resource_string(IDS_APP_DIRNAME));
         std::string path = appdatadir + vendorname + "/" + appname + "/trace.json";
         ch::write_to_file(TRACER.get_json(), path);
-        TRACER.set_enabled(false);
     } catch(...) {
         // quiet
     }
@@ -319,6 +318,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /
     }
     MSG msg;
     TRACER.trace("is due to start message loop");
+    // dump early what we have, will be replaced on clean UI exit
+    dump_trace();
     while (GetMessage(&msg, NULL, 0, 0)) {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
