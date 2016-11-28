@@ -63,9 +63,9 @@ add_custom_target ( ${PROJECT_NAME} )
 configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/checker.rc
         ${CMAKE_CURRENT_BINARY_DIR}/checker.rc )
 configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/config.json
-        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/config.json )
+        ${CMAKE_CURRENT_BINARY_DIR}/config.json )
 configure_file ( ${OJDKBUILD_DIR}/lookaside/ca-certificates/ca-bundle.trust.crt
-        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/checker.crt COPYONLY )
+        ${CMAKE_CURRENT_BINARY_DIR}/checker.crt COPYONLY )
 
 # dependencies
 set ( checker_DEPS zlib_static jansson openssl curl popt )
@@ -137,6 +137,20 @@ set_property ( TARGET notifier APPEND_STRING PROPERTY LINK_FLAGS "/manifest:no" 
 
 add_dependencies ( ${PROJECT_NAME} notifier )
 
+# dist
+add_custom_target ( ${PROJECT_NAME}_dist
+        COMMAND ${CMAKE_COMMAND} -E make_directory dist
+        # checker
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/checker.exe dist
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_LIST_DIR}/resources/checker.vbs dist
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/checker.crt dist
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_BINARY_DIR}/config.json dist
+        # notifier
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/notifier.exe dist
+        COMMAND ${CMAKE_COMMAND} -E copy ${${PROJECT_NAME}_BMP_ICON_PATH} dist
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Creating ${PROJECT_NAME} distribution, path: [${CMAKE_CURRENT_BINARY_DIR}/dist] ..." )
+add_dependencies ( ${PROJECT_NAME}_dist ${PROJECT_NAME} )
 
 # installer
 configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/installer.xsl
