@@ -220,16 +220,19 @@ int main(int argc, char** argv) {
             cf.trace("local version path resolved, path: [" + verpath + "]");
             ch::Version local = load_local_version(cf, verpath);
             cf.trace("local version loaded, version number: [" + ch::utils::to_string(local.version_number) + "]");
+            cf.trace("EVENT_LOCALVERSION " + ch::utils::to_string(local.version_number));
 
             // fetch remote version
             ch::JsonRecord remote_json = ch::fetchurl(cf);
             ch::Version remote(remote_json);
             cf.trace("remote version loaded, version number: [" + ch::utils::to_string(remote.version_number) + "]");
+            cf.trace("EVENT_REMOTEVERSION " + ch::utils::to_string(remote.version_number));
 
             // replace local if updated
             if (remote.version_number > local.version_number) {
                 ch::write_to_file(remote.to_json(), verpath);
                 cf.trace("remote version written, path: [" + verpath + "]");
+                cf.trace("EVENT_WRITTEN " + verpath);
                 std::cout << ch::platform::current_datetime() <<
                         " INFO: new version descriptor obtained: [" << verpath << "]" << 
                         " old version_number: [" << local.version_number << "]," <<

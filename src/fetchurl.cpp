@@ -294,7 +294,7 @@ size_t write(FetchCtx& ctx, char *buffer, size_t size, size_t nitems) {
     ctx.buf.resize(len);
     memcpy(ctx.buf.data(), buffer, len);
     ctx.cf.trace("data chunk received, size: [" + utils::to_string(ctx.buf.size()) + "]");
-    ctx.cf.trace("data chunk received, data: [" + std::string(ctx.buf.data(), ctx.buf.size()) + "]");
+    ctx.cf.trace("EVENT_RESPONSE " + std::string(ctx.buf.data(), ctx.buf.size()));
     return len;
 }
 
@@ -456,7 +456,7 @@ size_t headers_cb(char* buffer, size_t size, size_t nitems, void* ctx) /* noexce
 
 void apply_curlopts(FetchCtx& ctx) {
     // url
-    ctx.cf.trace("setting cURL params, url: [" + ctx.cf.remote_version_url + "]");
+    ctx.cf.trace("EVENT_URL " + ctx.cf.remote_version_url);
     setopt_string(ctx.curl, CURLOPT_URL, ctx.cf.remote_version_url);
 
     // method
