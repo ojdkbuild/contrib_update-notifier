@@ -94,14 +94,18 @@ bool load_input_json() {
         std::string appname = ch::utils::narrow(load_resource_string(IDS_APP_DIRNAME));
         std::string path = appdatadir + vendorname + "/" + appname + "/version.json";
         TRACER.trace("loading version from file, path: [" + path + "]");
+        TRACER.trace("EVENT_LOCALPATH " + path);
         ch::JsonRecord json = ch::read_from_file(path, NOTIFIER_MAX_INPUT_JSON_LEN);
         ch::Version ver(json);
         TRACER.trace("version loaded successfully");
         TRACER.trace("version contents, balloon_text: [" + ver.ui_balloon_text + "]");
+        TRACER.trace("EVENT_CONTENTBALLOON " + ver.ui_balloon_text);
         NOTIFIER_BALLOON_TEXT = ch::utils::widen(ver.ui_balloon_text);
         TRACER.trace("version contents, update_header: [" + ver.ui_update_header + "]");
+        TRACER.trace("EVENT_CONTENTUPDATEHEADER " + ver.ui_update_header);
         NOTIFIER_UPDATE_HEADER = ch::utils::widen(ver.ui_update_header);
         TRACER.trace("version contents, update_text: [" + ver.ui_update_text + "]");
+        TRACER.trace("EVENT_CONTENTUPDATETEXT " + ver.ui_update_text);
         NOTIFIER_UPDATE_TEXT = ch::utils::widen(ver.ui_update_text);
         std::string exepath = ch::platform::current_executable_path();
         std::string exedir = ch::utils::strip_filename(exepath);
@@ -112,7 +116,9 @@ bool load_input_json() {
         std::string vnumstr = ch::utils::narrow(vnumwstr);
         uint32_t vnum = ch::utils::parse_uint32(vnumstr);
         TRACER.trace("version contents, version_number: [" + ch::utils::to_string(ver.version_number) + "]");
+        TRACER.trace("EVENT_CONTENTVERSION " + ch::utils::to_string(ver.version_number));
         TRACER.trace("shipped version extracted, version_number: [" + vnumstr + "]");
+        TRACER.trace("EVENT_SHIPPEDVERSION " + vnumstr);
         return ver.version_number > vnum;
     } catch (const std::exception& e) {
         TRACER.trace(std::string() + "ERROR: " + e.what());
@@ -292,10 +298,12 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /
     bool err_vcheck = load_input_json();
     if (!err_vcheck) {
         TRACER.trace("'NOGO' mode exiting");
+        TRACER.trace("EVENT_PROCEED 1");
         dump_trace();
         return 0; // err handling is too coarse here
     }
     TRACER.trace("'GO' mode proceeding");
+    TRACER.trace("EVENT_PROCEED 0");
     // create ui
     WNDCLASSEX wcex;
     memset(&wcex, '\0', sizeof(wcex));
