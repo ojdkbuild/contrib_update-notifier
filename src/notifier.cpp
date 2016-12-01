@@ -89,12 +89,15 @@ void dump_trace() {
 
 bool load_input_json() {
     try {
+        // find out path
         std::string appdatadir = ch::platform::get_userdata_directory();
         std::string vendorname = ch::utils::narrow(load_resource_string(IDS_VENDOR_DIRNAME));
         std::string appname = ch::utils::narrow(load_resource_string(IDS_APP_DIRNAME));
         std::string path = appdatadir + vendorname + "/" + appname + "/version.json";
         TRACER.trace("loading version from file, path: [" + path + "]");
         TRACER.trace("EVENT_LOCALPATH " + path);
+
+        // load json
         ch::JsonRecord json = ch::read_from_file(path, NOTIFIER_MAX_INPUT_JSON_LEN);
         ch::Version ver(json);
         TRACER.trace("version loaded successfully");
@@ -107,11 +110,15 @@ bool load_input_json() {
         TRACER.trace("version contents, update_text: [" + ver.ui_update_text + "]");
         TRACER.trace("EVENT_CONTENTUPDATETEXT " + ver.ui_update_text);
         NOTIFIER_UPDATE_TEXT = ch::utils::widen(ver.ui_update_text);
+
+        // find out icon path
         std::string exepath = ch::platform::current_executable_path();
         std::string exedir = ch::utils::strip_filename(exepath);
         std::string iconpath = exedir + "icon.bmp";
         NOTIFIER_BMP_ICON_PATH = ch::utils::widen(iconpath);
         TRACER.trace("balloon icon resolved, path: [" + iconpath + "]");
+
+        // load shipped version number
         std::wstring vnumwstr = load_resource_string(IDS_SHIPPED_VERSION_NUMBER);
         std::string vnumstr = ch::utils::narrow(vnumwstr);
         uint32_t vnum = ch::utils::parse_uint32(vnumstr);
@@ -119,6 +126,8 @@ bool load_input_json() {
         TRACER.trace("EVENT_CONTENTVERSION " + ch::utils::to_string(ver.version_number));
         TRACER.trace("shipped version extracted, version_number: [" + vnumstr + "]");
         TRACER.trace("EVENT_SHIPPEDVERSION " + vnumstr);
+
+        // check wherher version updated
         return ver.version_number > vnum;
     } catch (const std::exception& e) {
         TRACER.trace(std::string() + "ERROR: " + e.what());
@@ -135,31 +144,43 @@ bool add_notification(HWND hwnd) {
     nid.uID = NOTIFIER_ICON_UID;
     nid.uFlags = NIF_INFO | NIF_ICON | NIF_TIP | NIF_MESSAGE | NIF_SHOWTIP;
     nid.uCallbackMessage = WMAPP_NOTIFYCALLBACK;
+
+    // tray icon from embedded ico
     HRESULT err_icon = LoadIconMetric(NOTIFIER_HANDLE_INSTANCE, MAKEINTRESOURCE(IDI_NOTIFICATIONICON), LIM_SMALL, &nid.hIcon);
     if (S_OK != err_icon) {
         TRACER.trace("'LoadIconMetric' fail, return: [" + ch::utils::to_string(err_icon) + "]");
         return false;
     }
+
+    // balloon icon from file
     nid.hBalloonIcon = static_cast<HICON>(LoadImageW(NULL, NOTIFIER_BMP_ICON_PATH.c_str(), IMAGE_BITMAP, 128, 128, LR_LOADFROMFILE));
     if (NULL == nid.hBalloonIcon) {
         TRACER.trace("'LoadImageW' fail, error: [" + ch::utils::errcode_to_string(GetLastError()) + "]");
         return false;
     }
+    nid.dwInfoFlags = NIIF_USER | NIIF_NOSOUND | NIIF_RESPECT_QUIET_TIME;
+
+    // tooltip text
     int err_tooltip = LoadStringW(NOTIFIER_HANDLE_INSTANCE, IDS_TOOLTIP, nid.szTip, ARRAYSIZE(nid.szTip));
     if (0 == err_tooltip) {
         TRACER.trace("'LoadStringW' for tooltip fail, error: [" + ch::utils::errcode_to_string(GetLastError()) + "]");
         return false;
     }
-    nid.dwInfoFlags = NIIF_USER | NIIF_NOSOUND | NIIF_RESPECT_QUIET_TIME;
+
+    // balloon header, static
     int err_title = LoadStringW(NOTIFIER_HANDLE_INSTANCE, IDS_BALLOON_TITLE, nid.szInfoTitle, ARRAYSIZE(nid.szInfoTitle));
     if (0 == err_title) {
         TRACER.trace("'LoadStringW' for title fail, error: [" + ch::utils::errcode_to_string(GetLastError()) + "]");
         return false;
     }
+
+    // balloon text, from version file
     errno_t err_info = wcscpy_s(nid.szInfo, ARRAYSIZE(nid.szInfo), NOTIFIER_BALLOON_TEXT.c_str());
     if (0 != err_info) {
         return false;
     }
+
+    // show
     BOOL success = Shell_NotifyIcon(NIM_ADD, &nid);
     if (success) {
         nid.uVersion = NOTIFYICON_VERSION_4;
@@ -285,6 +306,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /
     bool verbose = L'v' == cline[cline.length() - 1] && L'-' == cline[cline.length() - 2];
     TRACER.set_enabled(verbose);
     TRACER.trace("tracer initialized");
+
     // check we are alone
     std::wstring mutex_uid = load_resource_string(IDS_INSTANCE_MUTEX_UUID);
     ch::utils::NamedMutex mutex(mutex_uid);
@@ -293,6 +315,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /
         dump_trace();
         return 0;
     }
+
     // fill globals
     NOTIFIER_HANDLE_INSTANCE = hInstance;
     bool err_vcheck = load_input_json();
@@ -304,6 +327,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /
     }
     TRACER.trace("'GO' mode proceeding");
     TRACER.trace("EVENT_PROCEED 0");
+
     // create ui
     WNDCLASSEX wcex;
     memset(&wcex, '\0', sizeof(wcex));
@@ -324,6 +348,8 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /
         dump_trace();
         return 1;
     }
+
+    // message loop
     MSG msg;
     TRACER.trace("is due to start message loop");
     // dump early what we have, will be replaced on clean UI exit
