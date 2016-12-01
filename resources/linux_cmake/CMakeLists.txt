@@ -20,7 +20,8 @@ project ( update_checker C CXX )
 set ( ${PROJECT_NAME}_SRCDIR ${CMAKE_CURRENT_LIST_DIR}/../../src )
 set ( ${PROJECT_NAME}_CHECK_URL "https://raw.githubusercontent.com/ojdkbuild/scratch/master/rhtemporary/version.json" )
 set ( ${PROJECT_NAME}_CACERTS_PATH "/etc/pki/tls/certs/ca-bundle.crt" )
-set ( openjdk_INSTALLER_VENDOR_DIRNAME "ojdkbuild" )
+set ( openjdk_VENDOR_DIRNAME "ojdkbuild" )
+set ( openjdk_IMAGE "${PROJECT_NAME}" )
 
 # executable
 add_executable ( ${PROJECT_NAME}

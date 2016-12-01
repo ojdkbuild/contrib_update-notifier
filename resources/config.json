@@ -3,7 +3,7 @@
     "max_json_size_bytes": 32768,
     "max_path_length": 1024,
     "vendor_name": "${openjdk_VENDOR_DIRNAME}",
-    "application_name": "${PROJECT_NAME}",
+    "application_name": "${openjdk_IMAGE}",
 
     "curl_max_connects": 1,
     "curl_max_bufsize_bytes": 32768,
