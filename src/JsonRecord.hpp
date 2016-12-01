@@ -57,6 +57,10 @@ public:
     
     void put_uint32(const std::string& fieldname, uint32_t value);
 
+    uint64_t get_uint64(const std::string& fieldname, uint64_t defaultval = 0) const;
+    
+    void put_uint64(const std::string& fieldname, uint64_t value);
+
     bool get_bool(const std::string& fieldname, bool defaultval = false) const;
     
     void put_bool(const std::string& fieldname, bool value);

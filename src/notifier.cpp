@@ -121,7 +121,7 @@ bool load_input_json() {
         // load shipped version number
         std::wstring vnumwstr = load_resource_string(IDS_SHIPPED_VERSION_NUMBER);
         std::string vnumstr = ch::utils::narrow(vnumwstr);
-        uint32_t vnum = ch::utils::parse_uint32(vnumstr);
+        uint64_t vnum = ch::utils::parse_uint64(vnumstr);
         TRACER.trace("version contents, version_number: [" + ch::utils::to_string(ver.version_number) + "]");
         TRACER.trace("EVENT_CONTENTVERSION " + ch::utils::to_string(ver.version_number));
         TRACER.trace("shipped version extracted, version_number: [" + vnumstr + "]");

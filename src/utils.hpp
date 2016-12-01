@@ -54,6 +54,8 @@ std::string strip_filename(const std::string& file_path);
 
 uint32_t parse_uint32(const std::string& str);
 
+uint64_t parse_uint64(const std::string& str);
+
 #ifdef _WIN32
 
 std::wstring widen(const std::string& st);

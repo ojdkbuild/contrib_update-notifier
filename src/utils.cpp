@@ -31,6 +31,7 @@
 #define UNICODE
 #define _UNICODE
 #include <windows.h>
+#define strtoll _strtoi64
 #endif // _WIN32
 
 #include <time.h>
@@ -50,8 +51,7 @@ uint32_t parse_uint32(const std::string& str) {
     const char* cstr = str.c_str();
     char* endptr;
     errno = 0;
-    // no strtoll in vs2010
-    long l = strtol(cstr, &endptr, 0);
+    long long l = strtoll(cstr, &endptr, 0);
     if (errno == ERANGE || cstr + str.length() != endptr) {
         throw CheckerException(std::string() + "Cannot parse uint32_t from string: [" + str + "]");
     }
@@ -59,6 +59,20 @@ uint32_t parse_uint32(const std::string& str) {
         throw CheckerException(std::string() + "Value overflow for uint32_t from string: [" + str + "]");
     }
     return static_cast<uint32_t> (l);
+}
+
+uint64_t parse_uint64(const std::string& str) {
+    const char* cstr = str.c_str();
+    char* endptr;
+    errno = 0;
+    long long l = strtoll(cstr, &endptr, 0);
+    if (errno == ERANGE || cstr + str.length() != endptr) {
+        throw CheckerException(std::string() + "Cannot parse uint64_t from string: [" + str + "]");
+    }
+    if (l < 0) {
+        throw CheckerException(std::string() + "Invalid negative value for uint64_t from string: [" + str + "]");
+    }
+    return static_cast<uint64_t> (l);
 }
 
 #ifdef _WIN32

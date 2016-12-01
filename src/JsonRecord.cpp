@@ -102,7 +102,32 @@ uint32_t JsonRecord::get_uint32(const std::string& fieldname, uint32_t defaultva
 }
 
 void JsonRecord::put_uint32(const std::string& fieldname, uint32_t value) {
-    json_t* field = json_integer(value);
+    json_t* field = json_integer(static_cast<json_int_t> (value));
+    if (!field) {
+        throw CheckerException("Cannot create JSON integer, field: [" + fieldname + "]," +
+                " value: [" + utils::to_string(value) + "]");
+    }
+    int err = json_object_set_new(json, fieldname.c_str(), field);
+    if (err) {
+        throw CheckerException("Cannot set JSON integer, field: [" + fieldname + "]," +
+                " value: [" + utils::to_string(value) + "]");
+    }
+}
+
+uint64_t JsonRecord::get_uint64(const std::string& fieldname, uint64_t defaultval) const {
+    json_t* field = json_object_get(json, fieldname.c_str());
+    if (!(field && json_is_integer(field))) {
+        return defaultval;
+    }
+    json_int_t res = json_integer_value(field);
+    if (res < 0) {
+        return defaultval;
+    }
+    return static_cast<uint64_t> (res);
+}
+
+void JsonRecord::put_uint64(const std::string& fieldname, uint64_t value) {
+    json_t* field = json_integer(static_cast<json_int_t> (value));
     if (!field) {
         throw CheckerException("Cannot create JSON integer, field: [" + fieldname + "]," +
                 " value: [" + utils::to_string(value) + "]");
