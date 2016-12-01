@@ -38,16 +38,7 @@ enabled(enabled),
 json(),
 counter(0) { }
 
-// Pre-C++11 move logic
-Tracer::Tracer(const Tracer& other) :
-enabled(other.enabled),
-json(other.json),
-counter(other.counter) {
-    other.enabled = false;
-    other.counter = 0;
-}
-
-void Tracer::trace(const std::string& message) const {
+void Tracer::trace(const std::string& message) {
     if (enabled) {
         std::string field = platform::current_datetime();
         field.push_back('_');

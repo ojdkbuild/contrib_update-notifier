@@ -156,6 +156,7 @@ private:
 class FetchCtx {
 public:        
     const Config& cf;
+    Tracer& tr;
     CurlMultiHolder& multi;
     CurlEasyHolder& curl;
 
@@ -168,8 +169,9 @@ public:
     
     std::string error;
         
-    FetchCtx(const Config& cf, CurlMultiHolder& multi, CurlEasyHolder& curl):
+    FetchCtx(const Config& cf, Tracer& tr, CurlMultiHolder& multi, CurlEasyHolder& curl):
     cf(cf),
+    tr(tr),
     multi(multi),
     curl(curl),
             
@@ -184,6 +186,10 @@ public:
             this->error.append("\n");
         }
         this->error.append(err_msg);
+    }
+
+    void trace(const std::string& message) {
+        tr.trace(message);
     }
     
 private:
@@ -293,14 +299,14 @@ size_t write(FetchCtx& ctx, char *buffer, size_t size, size_t nitems) {
     }
     ctx.buf.resize(len);
     memcpy(ctx.buf.data(), buffer, len);
-    ctx.cf.trace("data chunk received, size: [" + utils::to_string(ctx.buf.size()) + "]");
-    ctx.cf.trace("EVENT_RESPONSE " + std::string(ctx.buf.data(), ctx.buf.size()));
+    ctx.trace("data chunk received, size: [" + utils::to_string(ctx.buf.size()) + "]");
+    ctx.trace("EVENT_RESPONSE " + std::string(ctx.buf.data(), ctx.buf.size()));
     return len;
 }
 
 void check_state_after_perform(FetchCtx& ctx) {
-    ctx.cf.trace("connection closed, headers: [" + utils::to_string(ctx.headers_received) + "]");
-    ctx.cf.trace("connection closed, response_code: [" + utils::to_string(ctx.response_code) + "]");
+    ctx.trace("connection closed, headers: [" + utils::to_string(ctx.headers_received) + "]");
+    ctx.trace("connection closed, response_code: [" + utils::to_string(ctx.response_code) + "]");
     
     // check whether connection was successful
     if (!ctx.headers_received) {
@@ -341,7 +347,7 @@ fd_set create_fd() {
 void fill_buffer(FetchCtx& ctx) {
     ctx.buf_idx = 0;
     ctx.buf.resize(0);
-    ctx.cf.trace("fill buffer attempt");
+    ctx.trace("fill buffer attempt");
     // attempt to fill buffer
     while (ctx.open && 0 == ctx.buf.size()) {
         long timeo = -1;
@@ -366,10 +372,10 @@ void fill_buffer(FetchCtx& ctx) {
         // wait or select
         int err_select = 0;
         if (maxfd == -1) {
-            ctx.cf.trace("fdset fail, enter sleep branch");
+            ctx.trace("fdset fail, enter sleep branch");
             platform::thread_sleep_millis(ctx.cf.curl_fdset_timeout_millis);
         } else {
-            ctx.cf.trace("fdset success, performing select");
+            ctx.trace("fdset success, performing select");
             err_select = select(maxfd + 1, &fdread, &fdwrite, &fdexcep, &timeout);
         }
 
@@ -381,13 +387,13 @@ void fill_buffer(FetchCtx& ctx) {
                 throw CheckerException(
                     "cURL multi_perform error: [" + utils::to_string(err) + "]");
             }
-            ctx.cf.trace("perform complete, result: [" + utils::to_string(active) + "]");
+            ctx.trace("perform complete, result: [" + utils::to_string(active) + "]");
             ctx.open = (1 == active);
             if (!ctx.open) {
                 check_state_after_perform(ctx);
             }
         } else {
-            ctx.cf.trace("select fail");
+            ctx.trace("select fail");
         }
     }
 }
@@ -399,16 +405,16 @@ size_t write_headers(FetchCtx& ctx, char* /* buffer */, size_t size, size_t nite
 }
 
 size_t read(FetchCtx& ctx, void* buffer, size_t size) {
-    ctx.cf.trace("response chunk read, size: [" + utils::to_string(size) + "]");
+    ctx.trace("response chunk read, size: [" + utils::to_string(size) + "]");
     if (ctx.buf_idx == ctx.buf.size()) {
-        ctx.cf.trace("buffer empty");
+        ctx.trace("buffer empty");
         if (!ctx.open) {
-            ctx.cf.trace("connection closed");
+            ctx.trace("connection closed");
             return 0;
         }
         fill_buffer(ctx);
         if (0 == ctx.buf.size()) {
-            ctx.cf.trace("zero read");
+            ctx.trace("zero read");
             // currently zero curl read is not handled
             return 0;
         }
@@ -418,7 +424,7 @@ size_t read(FetchCtx& ctx, void* buffer, size_t size) {
     size_t reslen = avail <= size ? avail : size;
     std::memcpy(buffer, ctx.buf.data() + ctx.buf_idx, reslen);
     ctx.buf_idx += reslen;
-    ctx.cf.trace("response chunk read finish, size: [" + utils::to_string(reslen) + "]");
+    ctx.trace("response chunk read finish, size: [" + utils::to_string(reslen) + "]");
     return reslen;
 }
 
@@ -456,7 +462,7 @@ size_t headers_cb(char* buffer, size_t size, size_t nitems, void* ctx) /* noexce
 
 void apply_curlopts(FetchCtx& ctx) {
     // url
-    ctx.cf.trace("EVENT_URL " + ctx.cf.remote_version_url);
+    ctx.trace("EVENT_URL " + ctx.cf.remote_version_url);
     setopt_string(ctx.curl, CURLOPT_URL, ctx.cf.remote_version_url);
 
     // method
@@ -527,7 +533,7 @@ void apply_curlopts(FetchCtx& ctx) {
 
 } // namespace
 
-JsonRecord fetchurl(const Config& cf) {
+JsonRecord fetchurl(const Config& cf, Tracer& tr) {
     // init/destroy, this method can be entered only once
     CurlGlobalInitializer global;
     
@@ -537,9 +543,9 @@ JsonRecord fetchurl(const Config& cf) {
     
     // curl
     CurlEasyHolder curl(multi, curl_easy_init());
-    FetchCtx ctx(cf, multi, curl);
+    FetchCtx ctx(cf, tr, multi, curl);
     apply_curlopts(ctx);
-    cf.trace("curl init complete");
+    tr.trace("curl init complete");
     
     // load JSON    
     json_error_t error;

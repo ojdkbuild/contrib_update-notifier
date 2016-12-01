@@ -141,15 +141,15 @@ checker::Version load_local_version(const checker::Config& cf, const std::string
     }
 }
 
-void dump_trace(const checker::Config& cf) {
+void dump_trace(const checker::Config& cf, const checker::Tracer& tr) {
     namespace ch = checker;
-    if (!cf.system_trace_enable) {
+    if (!tr.is_enabled()) {
         return;
     }
     try {
         std::string appdatadir = ch::platform::get_userdata_directory();
         std::string path = appdatadir + cf.vendor_name + "/" + cf.application_name + "/trace.json";
-        ch::write_to_file(cf.get_tracer().get_json(), path);
+        ch::write_to_file(tr.get_json(), path);
     } catch (...) {
         //quiet
     }
@@ -201,7 +201,10 @@ int main(int argc, char** argv) {
         std::string configpath = resolve_config_path(opts, appdir);
         ch::JsonRecord cf_json = ch::read_from_file(configpath, 1 << 15);
         ch::Config cf(cf_json, appdir);
-        cf.trace("config loaded from path: [" + configpath + "]");
+
+        // init tracing
+        ch::Tracer tr(cf.system_trace_enable);
+        tr.trace("config loaded from path: [" + configpath + "]");
 
         // do cleanup and exit (uninstall action)
         if (opts.delet) {
@@ -217,33 +220,33 @@ int main(int argc, char** argv) {
         try { // need another try to preserve trace on error
             // load local version
             std::string verpath = resolve_version_path(cf);
-            cf.trace("local version path resolved, path: [" + verpath + "]");
+            tr.trace("local version path resolved, path: [" + verpath + "]");
             ch::Version local = load_local_version(cf, verpath);
-            cf.trace("local version loaded, version number: [" + ch::utils::to_string(local.version_number) + "]");
-            cf.trace("EVENT_LOCALVERSION " + ch::utils::to_string(local.version_number));
+            tr.trace("local version loaded, version number: [" + ch::utils::to_string(local.version_number) + "]");
+            tr.trace("EVENT_LOCALVERSION " + ch::utils::to_string(local.version_number));
 
             // fetch remote version
-            ch::JsonRecord remote_json = ch::fetchurl(cf);
+            ch::JsonRecord remote_json = ch::fetchurl(cf, tr);
             ch::Version remote(remote_json);
-            cf.trace("remote version loaded, version number: [" + ch::utils::to_string(remote.version_number) + "]");
-            cf.trace("EVENT_REMOTEVERSION " + ch::utils::to_string(remote.version_number));
+            tr.trace("remote version loaded, version number: [" + ch::utils::to_string(remote.version_number) + "]");
+            tr.trace("EVENT_REMOTEVERSION " + ch::utils::to_string(remote.version_number));
 
             // replace local if updated
             if (remote.version_number > local.version_number) {
                 ch::write_to_file(remote.to_json(), verpath);
-                cf.trace("remote version written, path: [" + verpath + "]");
-                cf.trace("EVENT_WRITTEN " + verpath);
+                tr.trace("remote version written, path: [" + verpath + "]");
+                tr.trace("EVENT_WRITTEN " + verpath);
                 std::cout << ch::platform::current_datetime() <<
                         " INFO: new version descriptor obtained: [" << verpath << "]" << 
                         " old version_number: [" << local.version_number << "]," <<
                         " new version number: [" << remote.version_number << "]" <<
                         std::endl;
             }
-            dump_trace(cf);
+            dump_trace(cf, tr);
         } catch(const std::exception& e) {
-            cf.trace(std::string() + "ERROR: " + e.what());
+            tr.trace(std::string() + "ERROR: " + e.what());
             std::cerr << ch::platform::current_datetime() << " ERROR: " << e.what() << std::endl;
-            dump_trace(cf);
+            dump_trace(cf, tr);
             return 1;
         }
     } catch(const std::exception& e) {

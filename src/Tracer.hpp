@@ -32,19 +32,16 @@
 namespace checker {
 
 class Tracer {
-    mutable bool enabled;    
-    mutable JsonRecord json;
-    mutable uint32_t counter;
+    bool enabled;    
+    JsonRecord json;
+    uint32_t counter;
     
 public:
     Tracer();
 
     Tracer(bool enabled);
 
-    // Pre-C++11 move logic
-    Tracer(const Tracer& other);
-    
-    void trace(const std::string& message) const;
+    void trace(const std::string& message);
     
     const JsonRecord& get_json() const;
 
@@ -53,6 +50,8 @@ public:
     void set_enabled(bool value);
     
 private:
+    Tracer(const Tracer& other);
+
     Tracer& operator=(const Tracer& other);
 
 };

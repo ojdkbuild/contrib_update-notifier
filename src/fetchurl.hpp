@@ -36,7 +36,7 @@
 
 namespace checker {
 
-JsonRecord fetchurl(const Config& cf);
+JsonRecord fetchurl(const Config& cf, Tracer& tr);
 
 } // namespace
 

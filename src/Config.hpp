@@ -34,8 +34,6 @@
 namespace checker {
 
 class Config {
-    Tracer tracer;
-    
 public:    
     std::string remote_version_url;
     uint32_t max_json_size_bytes;
@@ -87,8 +85,6 @@ public:
     bool system_trace_enable;
     
     Config() :
-    tracer(false),
-    
     max_json_size_bytes(0),
     max_path_length(0),
     
@@ -117,7 +113,6 @@ public:
     { }
     
     Config(const JsonRecord& json, const std::string& appdir) :
-    tracer(json.get_bool("system_trace_enable", false)),
     
     remote_version_url(json.get_string("remote_version_url")),
     max_json_size_bytes(json.get_uint32("max_json_size_bytes", 1 << 15)),
@@ -170,14 +165,6 @@ public:
         if (!curl_crlfile_filename.empty() && '/' != curl_crlfile_filename[0]) {
             curl_crlfile_filename.insert(0, appdir);
         }
-    }
-    
-    void trace(const std::string& message) const {
-        tracer.trace(message);
-    }
-    
-    const Tracer& get_tracer() const {
-        return tracer;
     }
 };
 
