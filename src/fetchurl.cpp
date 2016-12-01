@@ -315,7 +315,7 @@ void check_state_after_perform(FetchCtx& ctx) {
 
     // check for response code
     if (ctx.response_code >= 400) {
-        throw CheckerException(std::string() + "HTTP error returned from server" +
+        throw CheckerException(std::string() + "HTTP error returned from server," +
                 " response_code: [" + utils::to_string(ctx.response_code) + "]");
     }
 
@@ -552,12 +552,17 @@ JsonRecord fetchurl(const Config& cf, Tracer& tr) {
     int flags = JSON_REJECT_DUPLICATES | JSON_DECODE_ANY | JSON_DISABLE_EOF_CHECK;
     json_t* json = json_load_callback(read_cb, &ctx, flags, &error);
     if (!json) {
-        throw CheckerException(std::string() + "Error parsing JSON:" +
-                " text: [" + error.text + "]" +
-                " line: [" + utils::to_string(error.line) + "]" +
-                " column: [" + utils::to_string(error.column) + "]" +
-                " position: [" + utils::to_string(error.position) + "],"
-                " callback error: [" + ctx.error + "]");
+        // check whether no text is parsed yet and report callback error in that case
+        if (!ctx.error.empty() && 1 == error.line && 0 == error.column && 0 == error.position) {
+            throw CheckerException("HTTP connection error: [" + ctx.error + "]");
+        } else {
+            throw CheckerException(std::string() + "Error parsing JSON," +
+                    " text: [" + error.text + "]," +
+                    " line: [" + utils::to_string(error.line) + "]," +
+                    " column: [" + utils::to_string(error.column) + "]," +
+                    " position: [" + utils::to_string(error.position) + "],"
+                    " callback error: [" + ctx.error + "]");
+        }
     }
     return JsonRecord(json);
 }
