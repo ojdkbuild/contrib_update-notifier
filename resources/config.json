@@ -1,5 +1,4 @@
 {
-    "shipped_version_number": 0,
     "remote_version_url": "${${PROJECT_NAME}_CHECK_URL}",
     "max_json_size_bytes": 32768,
     "max_path_length": 1024,
