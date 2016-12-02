@@ -44,9 +44,10 @@ set ( ${PROJECT_NAME}_FILE_DESCRIPTION_CHECKER "${openjdk_VENDOR_SHORT} OpenJDK 
 set ( ${PROJECT_NAME}_FILE_DESCRIPTION_NOTIFIER "${openjdk_VENDOR_SHORT} OpenJDK Update Notifier" CACHE STRING "File description field for notifier" )
 set ( ${PROJECT_NAME}_COMPANY_NAME_LABEL "${openjdk_VENDOR}" CACHE STRING "Company name version field" )
 set ( ${PROJECT_NAME}_PRODUCT_VERSION "${${PROJECT_NAME}_FILE_VERSION}" CACHE STRING "Product version field" )
-set ( ${PROJECT_NAME}_SHIPPED_VERSION_NUMBER ${openjdk_MAJOR_VERSION}16112801 CACHE STRING "Version number of shipped release" )
+set ( ${PROJECT_NAME}_SHIPPED_VERSION_NUMBER ${openjdk_MONOTONIC_VERSION_NUMBER} CACHE STRING "Version number of shipped release" )
 set ( ${PROJECT_NAME}_CHECKER_MANIFEST_PATH ${CMAKE_CURRENT_LIST_DIR}/resources/checker.manifest CACHE STRING "Path to checker manifest" )
 set ( ${PROJECT_NAME}_NOTIFIER_MANIFEST_PATH ${CMAKE_CURRENT_LIST_DIR}/resources/notifier.manifest CACHE STRING "Path to notifier manifest" )
+set ( ${PROJECT_NAME}_VERSION_UPDATE_MESSAGE "This version contains a number of fixes." CACHE STRING "Message for update dialog" )
 
 # static libraries
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/zlib )
@@ -155,3 +156,7 @@ add_dependencies ( ${PROJECT_NAME}_dist ${PROJECT_NAME} )
 # installer
 configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/installer.xsl
         ${CMAKE_CURRENT_BINARY_DIR}/installer.xsl )
+
+# deployment
+configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/version.json
+        ${CMAKE_CURRENT_BINARY_DIR}/version.json )
