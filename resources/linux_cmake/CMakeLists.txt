@@ -15,7 +15,7 @@
 cmake_minimum_required ( VERSION 2.8.11 )
 
 # project
-project ( update_checker C CXX )
+project ( checker C CXX )
 
 set ( ${PROJECT_NAME}_SRCDIR ${CMAKE_CURRENT_LIST_DIR}/../../src )
 set ( ${PROJECT_NAME}_CHECK_URL "https://raw.githubusercontent.com/ojdkbuild/scratch/master/rhtemporary/version.json" )
