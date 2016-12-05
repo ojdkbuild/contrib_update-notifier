@@ -13,7 +13,7 @@ On `windows_x86_64`:
 
     git clone --recursive https://github.com/ojdkbuild/ojdkbuild.git
     cd ojdkbuild
-    devshell.bat
+    call resources\scripts\set-compile-env.bat
     mkdir build
     cd build
     cmake ../src/java-1.8.0-openjdk
@@ -28,6 +28,8 @@ On `linux_x86_64` (CentOS/Fedora, `checker`-only build):
     cd build/
     cmake ../resources/linux_cmake/
     make 
+
+*Note: on windows `git` and `cmake` tools should NOT be ones from `Cygwin`*
 
 License information
 -------------------
