@@ -150,6 +150,7 @@ void dump_trace(const checker::Config& cf, const checker::Tracer& tr) {
         std::string appdatadir = ch::platform::get_userdata_directory();
         std::string path = appdatadir + cf.vendor_name + "/" + cf.application_name + "/trace.json";
         ch::write_to_file(tr.get_json(), path);
+        std::cout << "Trace written, path: [" << path << "]" << std::endl;
     } catch (...) {
         //quiet
     }
