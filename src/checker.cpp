@@ -217,12 +217,15 @@ int main(int argc, char** argv) {
             ch::platform::delete_directory(vendor_dir);
             return 0;
         }
-        
+
+        std::string verpath;
+        uint64_t vernum = 0;
         try { // need another try to preserve trace on error
             // load local version
-            std::string verpath = resolve_version_path(cf);
+            verpath = resolve_version_path(cf);
             tr.trace("local version path resolved, path: [" + verpath + "]");
             ch::Version local = load_local_version(cf, verpath);
+            vernum = local.version_number;
             tr.trace("local version loaded, version number: [" + ch::utils::to_string(local.version_number) + "]");
             tr.trace("EVENT_LOCALVERSION " + ch::utils::to_string(local.version_number));
 
@@ -246,7 +249,10 @@ int main(int argc, char** argv) {
             dump_trace(cf, tr);
         } catch(const std::exception& e) {
             tr.trace(std::string() + "ERROR: " + e.what());
-            std::cerr << ch::platform::current_datetime() << " ERROR: " << e.what() << std::endl;
+            std::cerr << ch::platform::current_datetime() <<
+                    " ERROR: " << e.what() <<
+                    "; local version, path: [" << verpath << "]," <<
+                    " version_number: [" << vernum << "]" << std::endl;
             dump_trace(cf, tr);
             return 1;
         }
