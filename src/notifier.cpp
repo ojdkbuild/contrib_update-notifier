@@ -89,6 +89,12 @@ void dump_trace() {
 
 bool load_input_json() {
     try {
+        // load shipped version number
+        std::wstring vnumwstr = load_resource_string(IDS_SHIPPED_VERSION_NUMBER);
+        std::string vnumstr = ch::utils::narrow(vnumwstr);
+        TRACER.trace("shipped version extracted, version_number: [" + vnumstr + "]");
+        TRACER.trace("EVENT_SHIPPEDVERSION " + vnumstr);
+
         // find out path
         std::string appdatadir = ch::platform::get_userdata_directory();
         std::string vendorname = ch::utils::narrow(load_resource_string(IDS_VENDOR_DIRNAME));
@@ -110,6 +116,8 @@ bool load_input_json() {
         TRACER.trace("version contents, update_text: [" + ver.ui_update_text + "]");
         TRACER.trace("EVENT_CONTENTUPDATETEXT " + ver.ui_update_text);
         NOTIFIER_UPDATE_TEXT = ch::utils::widen(ver.ui_update_text);
+        TRACER.trace("version contents, version_number: [" + ch::utils::to_string(ver.version_number) + "]");
+        TRACER.trace("EVENT_CONTENTVERSION " + ch::utils::to_string(ver.version_number));
 
         // find out icon path
         std::string exepath = ch::platform::current_executable_path();
@@ -118,16 +126,8 @@ bool load_input_json() {
         NOTIFIER_BMP_ICON_PATH = ch::utils::widen(iconpath);
         TRACER.trace("balloon icon resolved, path: [" + iconpath + "]");
 
-        // load shipped version number
-        std::wstring vnumwstr = load_resource_string(IDS_SHIPPED_VERSION_NUMBER);
-        std::string vnumstr = ch::utils::narrow(vnumwstr);
-        uint64_t vnum = ch::utils::parse_uint64(vnumstr);
-        TRACER.trace("version contents, version_number: [" + ch::utils::to_string(ver.version_number) + "]");
-        TRACER.trace("EVENT_CONTENTVERSION " + ch::utils::to_string(ver.version_number));
-        TRACER.trace("shipped version extracted, version_number: [" + vnumstr + "]");
-        TRACER.trace("EVENT_SHIPPEDVERSION " + vnumstr);
-
         // check wherher version updated
+        uint64_t vnum = ch::utils::parse_uint64(vnumstr);
         return ver.version_number > vnum;
     } catch (const std::exception& e) {
         TRACER.trace(std::string() + "ERROR: " + e.what());
