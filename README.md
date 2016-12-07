@@ -9,6 +9,8 @@ This project contains two utilities:
 How to build
 ------------
 
+*Note: on windows please use `git` tool from [git-for-windows](https://git-for-windows.github.io/), not from Cygwin*
+
 On `windows_x86_64`:
 
     git clone --recursive https://github.com/ojdkbuild/ojdkbuild.git
@@ -28,8 +30,6 @@ On `linux_x86_64` (CentOS/Fedora, `checker`-only build):
     cd build/
     cmake ../resources/linux_cmake/
     make 
-
-*Note: on windows `git` and `cmake` tools should NOT be ones from `Cygwin`*
 
 License information
 -------------------
