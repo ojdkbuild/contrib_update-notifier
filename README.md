@@ -9,7 +9,7 @@ This project contains two utilities:
 How to build
 ------------
 
-*Note: on windows please use `git` tool from [git-for-windows](https://git-for-windows.github.io/), not from Cygwin*
+*Note: on windows please use `git` tool from [git-for-windows](https://git-for-windows.github.io/), not from Cygwin; `cmake` tool is included inside cloned repo*
 
 On `windows_x86_64`:
 
