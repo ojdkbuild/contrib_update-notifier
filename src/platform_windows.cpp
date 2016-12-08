@@ -144,5 +144,10 @@ std::string current_datetime() {
     return std::string(tmpbuf);
 }
 
+int32_t current_pid() {
+    DWORD res = GetCurrentProcessId();
+    return static_cast<int32_t>(res);
+}
+
 } // namespace
 }

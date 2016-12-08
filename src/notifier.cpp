@@ -305,6 +305,7 @@ int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /
     std::wstring cline(GetCommandLineW());
     bool verbose = L'v' == cline[cline.length() - 1] && L'-' == cline[cline.length() - 2];
     TRACER.set_enabled(verbose);
+    TRACER.trace("EVENT_PID " + ch::utils::to_string(ch::platform::current_pid()));
     TRACER.trace("tracer initialized");
 
     // check we are alone

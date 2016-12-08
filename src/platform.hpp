@@ -24,6 +24,7 @@
 #ifndef UPDATE_CHECKER_PLATFORM_HPP
 #define	UPDATE_CHECKER_PLATFORM_HPP
 
+#include <stdint.h>
 #include <cstdio>
 #include <string>
 
@@ -56,6 +57,8 @@ void thread_sleep_millis(uint32_t millis);
 std::string current_executable_path();
 
 std::string current_datetime();
+
+int32_t current_pid();
 
 } // namespace
 } 

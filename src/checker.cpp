@@ -205,6 +205,7 @@ int main(int argc, char** argv) {
 
         // init tracing
         ch::Tracer tr(cf.system_trace_enable);
+        tr.trace("EVENT_PID " + ch::utils::to_string(ch::platform::current_pid()));
         tr.trace("config loaded from path: [" + configpath + "]");
 
         // do cleanup and exit (uninstall action)
