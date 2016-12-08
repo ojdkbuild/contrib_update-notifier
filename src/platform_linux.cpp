@@ -135,5 +135,10 @@ std::string current_datetime() {
     return std::string(tmpbuf);
 }
 
+int32_t current_pid() {
+    pid_t res = getpid();
+    return static_cast<int32_t>(res);
+}
+
 } // namespace
 }
