@@ -68,7 +68,7 @@
         <Property Id="WixQuietExec64CmdLine" Value=" "/>
         <CustomAction Id="_268df76e_333f_4d09_98cd_bcab59395e2c" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_CHECKER_SCHEDULE} /tr &quot;wscript \&quot;[UPDATEDIR]checker.vbs\&quot;&quot;"/>
         <CustomAction Id="_ad90e97e_77ee_4f1f_b127_d054239e8174" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
-        <CustomAction Id="_7e6b83ae_8120_40e2_a2fd_bcc4302b5ac1" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_NOTIFIER_SCHEDULE} /tr &quot;[UPDATEDIR]notifier.exe&quot;"/>
+        <CustomAction Id="_7e6b83ae_8120_40e2_a2fd_bcc4302b5ac1" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_NOTIFIER_SCHEDULE} /tr &quot;\&quot;[UPDATEDIR]notifier.exe\&quot;&quot;"/>
         <CustomAction Id="_e2b0a4e7_3b5f_4c08_83f4_e9b692ccf518" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
         <CustomAction Id="_79ca21fa_3a02_4a9f_b8ba_767b0a80e4e6" Property="WixQuietExec64CmdLine" Value="&quot;[UPDATEDIR]checker.exe&quot; -d"/>
         <CustomAction Id="_3c33d055_b0b1_46a6_b394_f1214e39ce0f" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
