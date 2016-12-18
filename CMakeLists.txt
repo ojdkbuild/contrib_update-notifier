@@ -31,7 +31,7 @@ set ( ${PROJECT_NAME}_INSTALLER_NOTIFIER_SCHEDULE "/sc daily /st 12:10 /ru [Logo
 set ( ${PROJECT_NAME}_TOOLTIP_LABEL "${openjdk_VENDOR_SHORT} OpenJDK update" CACHE STRING "Notification area tooltip" )
 set ( ${PROJECT_NAME}_BALLOON_TITLE_LABEL "${openjdk_VENDOR_SHORT} OpenJDK update available" CACHE STRING "Notification balloon title" )
 set ( ${PROJECT_NAME}_UPDATE_TITLE_LABEL "${openjdk_VENDOR_SHORT} OpenJDK update available" CACHE STRING "Update dialog title" )
-set ( ${PROJECT_NAME}_CHECK_URL "https://raw.githubusercontent.com/ojdkbuild/scratch/master/version.json" CACHE STRING "URL to check for updates" )
+set ( ${PROJECT_NAME}_CHECK_URL "https://raw.githubusercontent.com/ojdkbuild/ojdkbuild/master/resources/update/java-1.8.0-openjdk.windows.x86_64.version.json" CACHE STRING "URL to check for updates" )
 set ( ${PROJECT_NAME}_BROWSER_URL "https://github.com/ojdkbuild/ojdkbuild#downloads-for-windows-x86_64" CACHE STRING "URL to open in browser" )
 set ( ${PROJECT_NAME}_CACERTS_PATH "checker.crt" )
 set ( ${PROJECT_NAME}_UPDATE_PROCEED_LABEL "To proceed with download and installation please follow a link below" CACHE STRING "'Update' dialog label" )
