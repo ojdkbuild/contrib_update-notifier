@@ -15,7 +15,6 @@
 cmake_minimum_required ( VERSION 2.8.12 )
 
 # project
-set ( OJDKBUILD_DIR ${CMAKE_CURRENT_LIST_DIR}/../.. CACHE INTERNAL "" )
 include ( ${OJDKBUILD_DIR}/resources/cmake/ojdkbuild_common.cmake )
 project ( update_notifier C CXX )
 
