@@ -13,9 +13,10 @@ How to build
 
 On `windows_x86_64`:
 
-    git clone --recursive https://github.com/ojdkbuild/ojdkbuild.git
+    git clone https://github.com/ojdkbuild/ojdkbuild.git
     cd ojdkbuild
-    call resources\scripts\set-compile-env.bat
+    "resources/scripts/modules.bat" resources/profiles/update_notifier.gitmodules.txt
+    call "resources/scripts/set-compile-env.bat"
     mkdir build
     cd build
     cmake ../src/java-1.8.0-openjdk
