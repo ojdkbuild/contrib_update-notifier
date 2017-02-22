@@ -65,28 +65,41 @@
             <ComponentRef Id="_c393a906_51fe_4a26_b1d8_df8d9297fb9c"/>
             <ComponentRef Id="_ee5a58db_81ac_46d2_b628_67a9123dee16"/>
         </Feature>
+
+        <!-- impersonated -->
         <Property Id="WixQuietExec64CmdLine" Value=" "/>
-        <CustomAction Id="_268df76e_333f_4d09_98cd_bcab59395e2c" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_CHECKER_SCHEDULE} /tr &quot;wscript \&quot;[UPDATEDIR]checker.vbs\&quot;&quot;"/>
-        <CustomAction Id="_ad90e97e_77ee_4f1f_b127_d054239e8174" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
-        <CustomAction Id="_7e6b83ae_8120_40e2_a2fd_bcc4302b5ac1" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_NOTIFIER_SCHEDULE} /tr &quot;\&quot;[UPDATEDIR]notifier.exe\&quot;&quot;"/>
-        <CustomAction Id="_e2b0a4e7_3b5f_4c08_83f4_e9b692ccf518" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
-        <CustomAction Id="_79ca21fa_3a02_4a9f_b8ba_767b0a80e4e6" Property="WixQuietExec64CmdLine" Value="&quot;[UPDATEDIR]checker.exe&quot; -d"/>
-        <CustomAction Id="_3c33d055_b0b1_46a6_b394_f1214e39ce0f" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
-        <CustomAction Id="_6ed57788_9ade_421f_bd9f_7a0d32b5242f" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME}"/>
-        <CustomAction Id="_ce2a8b40_5ca6_45bd_bdfa_a413be73f8ba" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
-        <CustomAction Id="_a6864546_7d27_41c0_abb4_356d81cf31b8" Property="WixQuietExec64CmdLine" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME}"/>
-        <CustomAction Id="_7770bf24_eea0_4b01_bec3_094c621b11f4" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
+        <CustomAction Id="checker_cleanup_impersonated_prop" Property="WixQuietExec64CmdLine" Value="&quot;[UPDATEDIR]checker.exe&quot; -d"/>
+        <CustomAction Id="checker_cleanup_impersonated" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
+
+        <!-- immediate -->
+        <CustomAction Id="checker_register_immediate" Property="checker_register_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_CHECKER_SCHEDULE} /tr &quot;wscript \&quot;[UPDATEDIR]checker.vbs\&quot;&quot;"/>
+        <CustomAction Id="notifier_register_immediate" Property="notifier_register_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_NOTIFIER_SCHEDULE} /tr &quot;\&quot;[UPDATEDIR]notifier.exe\&quot;&quot;"/>
+        <CustomAction Id="checker_unregister_immediate" Property="checker_unregister_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME}"/>
+        <CustomAction Id="notifier_unregister_immediate" Property="notifier_unregister_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME}"/>
+
+        <!-- deferred -->
+        <CustomAction Id="checker_register_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore" Execute="deferred" Impersonate="no"/>
+        <CustomAction Id="notifier_register_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore" Execute="deferred" Impersonate="no"/>
+        <CustomAction Id="checker_unregister_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore" Execute="deferred" Impersonate="no"/>
+        <CustomAction Id="notifier_unregister_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore" Execute="deferred" Impersonate="no"/>
+
         <InstallExecuteSequence>
-            <Custom Action="_268df76e_333f_4d09_98cd_bcab59395e2c" After="InstallFinalize"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
-            <Custom Action="_ad90e97e_77ee_4f1f_b127_d054239e8174" After="_268df76e_333f_4d09_98cd_bcab59395e2c"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
-            <Custom Action="_7e6b83ae_8120_40e2_a2fd_bcc4302b5ac1" After="_ad90e97e_77ee_4f1f_b127_d054239e8174"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
-            <Custom Action="_e2b0a4e7_3b5f_4c08_83f4_e9b692ccf518" After="_7e6b83ae_8120_40e2_a2fd_bcc4302b5ac1"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
-            <Custom Action="_79ca21fa_3a02_4a9f_b8ba_767b0a80e4e6" Before="_3c33d055_b0b1_46a6_b394_f1214e39ce0f"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
-            <Custom Action="_3c33d055_b0b1_46a6_b394_f1214e39ce0f" Before="_6ed57788_9ade_421f_bd9f_7a0d32b5242f"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
-            <Custom Action="_6ed57788_9ade_421f_bd9f_7a0d32b5242f" Before="_ce2a8b40_5ca6_45bd_bdfa_a413be73f8ba"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
-            <Custom Action="_ce2a8b40_5ca6_45bd_bdfa_a413be73f8ba" Before="_a6864546_7d27_41c0_abb4_356d81cf31b8"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
-            <Custom Action="_a6864546_7d27_41c0_abb4_356d81cf31b8" Before="_7770bf24_eea0_4b01_bec3_094c621b11f4"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
-            <Custom Action="_7770bf24_eea0_4b01_bec3_094c621b11f4" Before="RemoveFiles"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
+            <!-- impersonated -->
+            <Custom Action="checker_cleanup_impersonated_prop" Before="checker_cleanup_impersonated"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
+            <Custom Action="checker_cleanup_impersonated" Before="RemoveFiles"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
+
+            <!-- immediate -->
+            <Custom Action="checker_register_immediate" Before="InstallInitialize"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
+            <Custom Action="notifier_register_immediate" Before="InstallInitialize"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
+            <Custom Action="checker_unregister_immediate" Before="InstallInitialize"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
+            <Custom Action="notifier_unregister_immediate" Before="InstallInitialize"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
+
+            <!-- deferred -->
+            <Custom Action="checker_register_deferred" Before="notifier_register_deferred"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
+            <Custom Action="notifier_register_deferred" Before="InstallFinalize"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
+            <Custom Action="checker_unregister_deferred" Before="notifier_unregister_deferred"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
+            <Custom Action="notifier_unregister_deferred" Before="InstallFinalize"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
         </InstallExecuteSequence>
+
     </xsl:template>
 </xsl:stylesheet>

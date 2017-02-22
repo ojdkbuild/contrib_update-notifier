@@ -26,7 +26,7 @@ set ( ${PROJECT_NAME}_INSTALLER_FEATURE_TITLE "Update Notifier" CACHE STRING "MS
 set ( ${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME "${openjdk_VENDOR_DIRNAME}_jdk_update_checker" CACHE STRING "Name for 'checker' task" ) 
 set ( ${PROJECT_NAME}_INSTALLER_CHECKER_SCHEDULE "/sc daily /st 12:00 /ru [LogonUser]" CACHE STRING "Scheduling details for 'checker' task" )
 set ( ${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME "${openjdk_VENDOR_DIRNAME}_jdk_update_notifier" CACHE STRING "Name for 'notifier' task" ) 
-set ( ${PROJECT_NAME}_INSTALLER_NOTIFIER_SCHEDULE "/sc daily /st 12:10 /ru [LogonUser]" CACHE STRING "Scheduling details for 'notifier'" )
+set ( ${PROJECT_NAME}_INSTALLER_NOTIFIER_SCHEDULE "/sc onlogon /ru [LogonUser]" CACHE STRING "Scheduling details for 'notifier'" )
 set ( ${PROJECT_NAME}_TOOLTIP_LABEL "${openjdk_VENDOR_SHORT} OpenJDK update" CACHE STRING "Notification area tooltip" )
 set ( ${PROJECT_NAME}_BALLOON_TITLE_LABEL "${openjdk_VENDOR_SHORT} OpenJDK update available" CACHE STRING "Notification balloon title" )
 set ( ${PROJECT_NAME}_UPDATE_TITLE_LABEL "${openjdk_VENDOR_SHORT} OpenJDK update available" CACHE STRING "Update dialog title" )
