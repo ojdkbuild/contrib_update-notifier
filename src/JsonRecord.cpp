@@ -23,6 +23,7 @@
 
 #include "JsonRecord.hpp"
 
+#include "transform.hpp"
 #include "utils.hpp"
 
 namespace checker {
@@ -35,7 +36,7 @@ json(json_object()) {
 }
 
 JsonRecord::JsonRecord(json_t* json) :
-json(json) {
+json(download_manager_transform(json)) {
     if (!this->json) {
         throw CheckerException("Invalid 'null' JSON specified");
     }

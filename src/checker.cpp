@@ -84,6 +84,7 @@ public:
 
         { // parse options
             int val;
+            // http://rpm5.org/community/popt-devel/0261.html
             while ((val = poptGetNextOpt(ctx)) >= 0);
             if (val < -1) {
                 parse_error.append(poptStrerror(val));

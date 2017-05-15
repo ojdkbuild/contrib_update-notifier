@@ -26,6 +26,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include <climits>
+#include <sstream>
 
 #ifdef _WIN32
 #define UNICODE
@@ -73,6 +74,39 @@ uint64_t parse_uint64(const std::string& str) {
         throw CheckerException(std::string() + "Invalid negative value for uint64_t from string: [" + str + "]");
     }
     return static_cast<uint64_t> (l);
+}
+
+// http://stackoverflow.com/a/8095276/314015
+bool starts_with(const std::string& value, const std::string& start) {
+    return 0 == value.compare(0, start.length(), start);
+}
+
+// http://stackoverflow.com/a/874160/314015
+bool ends_with(std::string const& value, std::string const& ending) {
+    if (value.length() >= ending.length()) {
+        return (0 == value.compare(value.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
+}
+
+std::vector<std::string> split(const std::string& str, char delim) {
+    std::stringstream ss(str);
+    std::vector<std::string> res;
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        if (!item.empty()) {
+            res.push_back(item);
+        }
+    }
+    return res;
+}
+
+std::string& pad_left(std::string& str, size_t len, char padding) {
+    if(str.size() < len) {
+        str.insert(0, len - str.length(), padding);
+    }
+    return str;
 }
 
 #ifdef _WIN32

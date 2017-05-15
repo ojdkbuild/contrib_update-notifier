@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #ifdef _WIN32
 #define UNICODE
@@ -55,6 +56,14 @@ std::string strip_filename(const std::string& file_path);
 uint32_t parse_uint32(const std::string& str);
 
 uint64_t parse_uint64(const std::string& str);
+
+bool starts_with(const std::string& value, const std::string& start);
+
+bool ends_with(const std::string& value, const std::string& ending);
+
+std::vector<std::string> split(const std::string& str, char delim);
+
+std::string& pad_left(std::string& str, size_t len, char padding);
 
 #ifdef _WIN32
 
