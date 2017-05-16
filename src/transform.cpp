@@ -147,7 +147,7 @@ std::string json_get_string(json_t* json, const std::string& fieldname, const st
 
 json_t* extract_featured_artifact(json_t* json) {
     static const char* err = "Cannot extract 'featuredArtifact' from DM response";
-    if (!json_array_size(json) > 0) {
+    if (0 == json_array_size(json)) {
         throw CheckerException(err);
     }
     json_t* obj = json_array_get(json, 0);
