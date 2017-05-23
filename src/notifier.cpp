@@ -300,6 +300,15 @@ LRESULT CALLBACK window_callback(HWND hwnd, UINT message, WPARAM wParam, LPARAM 
 
 } // namespace
 
+namespace checker {
+
+// no-op notifier-specific transform impl
+json_t* download_manager_transform(json_t* json) {
+    return json;
+}
+
+} // namespace
+
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR /*lpCmdLine*/, int /* nCmdShow */) {
     // init tracer
     std::wstring cline(GetCommandLineW());

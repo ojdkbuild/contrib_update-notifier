@@ -80,6 +80,7 @@ add_executable ( checker
         src/jsonio.cpp
         src/platform_windows.cpp
         src/Tracer.cpp
+        src/transform.cpp
         src/utils.cpp
         ${CMAKE_CURRENT_BINARY_DIR}/checker.rc )
 
