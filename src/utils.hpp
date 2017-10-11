@@ -71,7 +71,7 @@ std::wstring widen(const std::string& st);
 
 std::string narrow(const wchar_t* wbuf, size_t length);
 
-std::string narrow(std::wstring wstr);
+std::string narrow(const std::wstring& wstr);
 
 std::string errcode_to_string(uint32_t code);
 

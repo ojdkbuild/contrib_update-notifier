@@ -80,7 +80,7 @@ void dump_trace() {
         std::string appdatadir = ch::platform::get_userdata_directory();
         std::string vendorname = ch::utils::narrow(load_resource_string(IDS_VENDOR_DIRNAME));
         std::string appname = ch::utils::narrow(load_resource_string(IDS_APP_DIRNAME));
-        std::string path = appdatadir + vendorname + "/" + appname + "/trace.json";
+        std::string path = appdatadir + vendorname + "/" + appname + "/update/trace.json";
         ch::write_to_file(TRACER.get_json(), path);
     } catch(...) {
         // quiet
@@ -99,7 +99,7 @@ bool load_input_json() {
         std::string appdatadir = ch::platform::get_userdata_directory();
         std::string vendorname = ch::utils::narrow(load_resource_string(IDS_VENDOR_DIRNAME));
         std::string appname = ch::utils::narrow(load_resource_string(IDS_APP_DIRNAME));
-        std::string path = appdatadir + vendorname + "/" + appname + "/version.json";
+        std::string path = appdatadir + vendorname + "/" + appname + "/update/version.json";
         TRACER.trace("loading version from file, path: [" + path + "]");
         TRACER.trace("EVENT_LOCALPATH " + path);
 

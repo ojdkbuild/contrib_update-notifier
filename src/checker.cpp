@@ -129,7 +129,8 @@ std::string resolve_version_path(const checker::Config& cf) {
     ch::platform::create_directory(vendor_dir);
     std::string appdir = vendor_dir + "/" + cf.application_name;
     ch::platform::create_directory(appdir);
-    return appdir + "/version.json";
+    ch::platform::create_directory(appdir + "/update");
+    return appdir + "/update/version.json";
 }
 
 checker::Version load_local_version(const checker::Config& cf, const std::string& verpath) {
@@ -149,7 +150,7 @@ void dump_trace(const checker::Config& cf, const checker::Tracer& tr) {
     }
     try {
         std::string appdatadir = ch::platform::get_userdata_directory();
-        std::string path = appdatadir + cf.vendor_name + "/" + cf.application_name + "/trace.json";
+        std::string path = appdatadir + cf.vendor_name + "/" + cf.application_name + "/update/trace.json";
         ch::write_to_file(tr.get_json(), path);
         std::cout << "Trace written, path: [" << path << "]" << std::endl;
     } catch (...) {
@@ -173,7 +174,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     
-    // check uneeded args
+    // check unneeded args
     if (opts.args.size() > 0) {
         std::cerr << "ERROR: invalid arguments specified:";
         for (std::vector<std::string>::iterator it = opts.args.begin(); it != opts.args.end(); ++it) {
@@ -213,9 +214,12 @@ int main(int argc, char** argv) {
         if (opts.delet) {
             std::string appdata_dir = ch::platform::get_userdata_directory();
             std::string vendor_dir = appdata_dir + cf.vendor_name;
-            ch::platform::delete_file(vendor_dir + "/" + cf.application_name + "/version.json");
-            ch::platform::delete_file(vendor_dir + "/" + cf.application_name + "/trace.json");
-            ch::platform::delete_directory(vendor_dir + "/" + cf.application_name);
+            std::string app_dir = vendor_dir + "/" + cf.application_name;
+            std::string update_dir = app_dir + "/update";
+            ch::platform::delete_file(update_dir + "/version.json");
+            ch::platform::delete_file(update_dir + "/trace.json");
+            ch::platform::delete_directory(update_dir);
+            ch::platform::delete_directory(app_dir);
             ch::platform::delete_directory(vendor_dir);
             return 0;
         }

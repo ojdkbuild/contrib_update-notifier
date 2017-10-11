@@ -177,7 +177,7 @@ std::string narrow(const wchar_t* wbuf, size_t length) {
     return res;
 }
 
-std::string narrow(std::wstring wstr) {
+std::string narrow(const std::wstring& wstr) {
     return narrow(wstr.c_str(), wstr.length());
 }
 
