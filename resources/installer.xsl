@@ -21,7 +21,7 @@
         </xsl:copy>
     </xsl:template>
     <xsl:template match="w:Directory[@Id='INSTALLDIR']">
-        <Directory>
+        <Directory Id="INSTALLDIR" xmlns="http://schemas.microsoft.com/wix/2006/wi">
             <xsl:apply-templates select="@* | *"/>
             <Directory Id="UPDATEDIR" Name="update">
                 <Component Id="_5efc6c34_bcd0_4a96_9731_aa0ad8921614" Guid="dcab29b2-5e2e-4ac0-b81b-ff0e4257cfff" Win64="yes">
@@ -52,12 +52,13 @@
         </Directory>
     </xsl:template>
     <xsl:template match="w:Feature[@ConfigurableDirectory='INSTALLDIR']">
-        <Feature>
+        <Feature Id="jdk" xmlns="http://schemas.microsoft.com/wix/2006/wi">
             <xsl:apply-templates select="@* | *"/>
         </Feature>
         <Feature Id="update_notifier" ConfigurableDirectory="UPDATEDIR" Absent="allow" AllowAdvertise="no" Level="${${PROJECT_NAME}_INSTALLER_FEATURE_LEVEL}" 
                 Title="${${PROJECT_NAME}_INSTALLER_FEATURE_TITLE}"
-                Description="Update Notifier checks availability of a new product version online and displays UI notification. This feature installs two tasks for Windows Task Scheduler.">
+                Description="Update Notifier checks availability of a new product version online and displays UI notification. This feature installs two tasks for Windows Task Scheduler."
+                xmlns="http://schemas.microsoft.com/wix/2006/wi">
             <ComponentRef Id="_5efc6c34_bcd0_4a96_9731_aa0ad8921614"/>
             <ComponentRef Id="_7b774e9f_13af_49bf_b3fe_8adf83674223"/>
             <ComponentRef Id="_a621153a_aacd_4755_bb6d_134f24411ba1"/>
@@ -67,23 +68,23 @@
         </Feature>
 
         <!-- impersonated -->
-        <Property Id="WixQuietExec64CmdLine" Value=" "/>
-        <CustomAction Id="checker_cleanup_impersonated_prop" Property="WixQuietExec64CmdLine" Value="&quot;[UPDATEDIR]checker.exe&quot; -d"/>
-        <CustomAction Id="checker_cleanup_impersonated" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore"/>
+        <Property Id="WixQuietExec64CmdLine" Value=" " xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
+        <CustomAction Id="checker_cleanup_impersonated_prop" Property="WixQuietExec64CmdLine" Value="&quot;[UPDATEDIR]checker.exe&quot; -d" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
+        <CustomAction Id="checker_cleanup_impersonated" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
 
         <!-- immediate -->
-        <CustomAction Id="checker_register_immediate" Property="checker_register_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_CHECKER_SCHEDULE} /tr &quot;wscript \&quot;[UPDATEDIR]checker.vbs\&quot;&quot;"/>
-        <CustomAction Id="notifier_register_immediate" Property="notifier_register_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_NOTIFIER_SCHEDULE} /tr &quot;\&quot;[UPDATEDIR]notifier.exe\&quot;&quot;"/>
-        <CustomAction Id="checker_unregister_immediate" Property="checker_unregister_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME}"/>
-        <CustomAction Id="notifier_unregister_immediate" Property="notifier_unregister_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME}"/>
+        <CustomAction Id="checker_register_immediate" Property="checker_register_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_CHECKER_SCHEDULE} /tr &quot;wscript \&quot;[UPDATEDIR]checker.vbs\&quot;&quot;" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
+        <CustomAction Id="notifier_register_immediate" Property="notifier_register_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_NOTIFIER_SCHEDULE} /tr &quot;\&quot;[UPDATEDIR]notifier.exe\&quot;&quot;" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
+        <CustomAction Id="checker_unregister_immediate" Property="checker_unregister_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME}" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
+        <CustomAction Id="notifier_unregister_immediate" Property="notifier_unregister_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME}" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
 
         <!-- deferred -->
-        <CustomAction Id="checker_register_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore" Execute="deferred" Impersonate="no"/>
-        <CustomAction Id="notifier_register_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore" Execute="deferred" Impersonate="no"/>
-        <CustomAction Id="checker_unregister_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore" Execute="deferred" Impersonate="no"/>
-        <CustomAction Id="notifier_unregister_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore" Execute="deferred" Impersonate="no"/>
+        <CustomAction Id="checker_register_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore" Execute="deferred" Impersonate="no" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
+        <CustomAction Id="notifier_register_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore" Execute="deferred" Impersonate="no" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
+        <CustomAction Id="checker_unregister_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore" Execute="deferred" Impersonate="no" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
+        <CustomAction Id="notifier_unregister_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec64" Return="ignore" Execute="deferred" Impersonate="no" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
 
-        <InstallExecuteSequence>
+        <InstallExecuteSequence xmlns="http://schemas.microsoft.com/wix/2006/wi">
             <!-- impersonated -->
             <Custom Action="checker_cleanup_impersonated_prop" Before="checker_cleanup_impersonated"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
             <Custom Action="checker_cleanup_impersonated" Before="RemoveFiles"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
