@@ -50,7 +50,7 @@ set ( ${PROJECT_NAME}_VERSION_UPDATE_MESSAGE "This version contains a number of 
 
 # static libraries
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/zlib )
-ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/jansson )
+ojdkbuild_add_external ( ${OJDKBUILD_DIR}/external/jansson )
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/openssl )
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/curl )
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/popt )
@@ -91,7 +91,7 @@ target_include_directories( checker BEFORE PRIVATE
 target_compile_options ( checker PRIVATE /W4 /WX )
 
 target_link_libraries ( checker
-        lookaside_jansson
+        jansson
         lookaside_popt
         lookaside_curl
         lookaside_openssl 
@@ -131,7 +131,7 @@ target_include_directories( notifier BEFORE PRIVATE
 target_compile_options ( notifier PRIVATE /W4 /WX )
 
 target_link_libraries ( notifier
-        lookaside_jansson
+        jansson
         comctl32 )
 
 set_property ( TARGET notifier APPEND_STRING PROPERTY LINK_FLAGS "/manifest:no" )
