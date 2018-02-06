@@ -53,7 +53,7 @@ ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/zlib )
 ojdkbuild_add_external ( ${OJDKBUILD_DIR}/external/jansson )
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/openssl )
 ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/curl )
-ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/popt )
+ojdkbuild_add_external ( ${OJDKBUILD_DIR}/external/popt )
 
 # andchor target
 add_custom_target ( ${PROJECT_NAME} )
@@ -92,7 +92,7 @@ target_compile_options ( checker PRIVATE /W4 /WX )
 
 target_link_libraries ( checker
         jansson
-        lookaside_popt
+        popt
         lookaside_curl
         lookaside_openssl 
         lookaside_zlib
