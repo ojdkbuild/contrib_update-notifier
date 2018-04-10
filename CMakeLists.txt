@@ -49,10 +49,10 @@ set ( ${PROJECT_NAME}_NOTIFIER_MANIFEST_PATH ${CMAKE_CURRENT_LIST_DIR}/resources
 set ( ${PROJECT_NAME}_VERSION_UPDATE_MESSAGE "This version contains a number of fixes." CACHE STRING "Message for update dialog" )
 
 # static libraries
-ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/zlib )
+ojdkbuild_add_external ( ${OJDKBUILD_DIR}/external/zlib )
 ojdkbuild_add_external ( ${OJDKBUILD_DIR}/external/jansson )
-ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/openssl )
-ojdkbuild_add_subdirectory ( ${OJDKBUILD_DIR}/deps/curl )
+ojdkbuild_add_external ( ${OJDKBUILD_DIR}/external/openssl )
+ojdkbuild_add_external ( ${OJDKBUILD_DIR}/external/curl )
 ojdkbuild_add_external ( ${OJDKBUILD_DIR}/external/popt )
 
 # andchor target
@@ -68,7 +68,7 @@ configure_file ( ${OJDKBUILD_DIR}/lookaside/ca-certificates/ca-bundle.trust.crt
         ${CMAKE_CURRENT_BINARY_DIR}/checker.crt COPYONLY )
 
 # dependencies
-set ( checker_DEPS zlib_static jansson openssl curl popt )
+set ( checker_DEPS zlib jansson openssl curl popt )
 ojdkbuild_pkg_check_modules ( checker_DEPS_PC REQUIRED checker_DEPS )
 
 # executable
@@ -93,9 +93,9 @@ target_compile_options ( checker PRIVATE /W4 /WX )
 target_link_libraries ( checker
         jansson
         popt
-        lookaside_curl
-        lookaside_openssl 
-        lookaside_zlib
+        curl
+        openssl 
+        z
         ws2_32 )
 
 target_compile_options ( checker PRIVATE ${checker_DEPS_PC_CFLAGS} )
