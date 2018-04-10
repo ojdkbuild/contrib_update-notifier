@@ -47,6 +47,8 @@ set ( ${PROJECT_NAME}_SHIPPED_VERSION_NUMBER ${openjdk_MONOTONIC_VERSION_NUMBER}
 set ( ${PROJECT_NAME}_CHECKER_MANIFEST_PATH ${CMAKE_CURRENT_LIST_DIR}/resources/checker.manifest CACHE STRING "Path to checker manifest" )
 set ( ${PROJECT_NAME}_NOTIFIER_MANIFEST_PATH ${CMAKE_CURRENT_LIST_DIR}/resources/notifier.manifest CACHE STRING "Path to notifier manifest" )
 set ( ${PROJECT_NAME}_VERSION_UPDATE_MESSAGE "This version contains a number of fixes." CACHE STRING "Message for update dialog" )
+# cURL build options
+set ( curl_WINXP_COMPAT OFF CACHE BOOL "libCURL WinXP compatibility" )
 
 # static libraries
 ojdkbuild_add_external ( ${OJDKBUILD_DIR}/external/zlib )
