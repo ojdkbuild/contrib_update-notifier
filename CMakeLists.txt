@@ -47,6 +47,7 @@ set ( ${PROJECT_NAME}_SHIPPED_VERSION_NUMBER ${openjdk_MONOTONIC_VERSION_NUMBER}
 set ( ${PROJECT_NAME}_CHECKER_MANIFEST_PATH ${CMAKE_CURRENT_LIST_DIR}/resources/checker.manifest CACHE STRING "Path to checker manifest" )
 set ( ${PROJECT_NAME}_NOTIFIER_MANIFEST_PATH ${CMAKE_CURRENT_LIST_DIR}/resources/notifier.manifest CACHE STRING "Path to notifier manifest" )
 set ( ${PROJECT_NAME}_VERSION_UPDATE_MESSAGE "This version contains a number of fixes." CACHE STRING "Message for update dialog" )
+set ( ${PROJECT_NAME}_NOTIFIER_JAVA_HOME ${CMAKE_CURRENT_BINARY_DIR}/../${openjdk_IMAGE} CACHE STRING "Path to jdk to use" )
 # cURL build options
 set ( curl_WINXP_COMPAT OFF CACHE BOOL "libCURL WinXP compatibility" )
 
@@ -154,6 +155,15 @@ add_custom_target ( ${PROJECT_NAME}_dist
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Creating ${PROJECT_NAME} distribution, path: [${CMAKE_CURRENT_BINARY_DIR}/dist] ..." )
 add_dependencies ( ${PROJECT_NAME}_dist ${PROJECT_NAME} )
+
+add_custom_target ( ${PROJECT_NAME}_dist_signed
+        # sign binaries
+        COMMAND ${${PROJECT_NAME}_NOTIFIER_JAVA_HOME}/bin/jjs.exe ${openjdk_SIGNER_JVM_OPTS}
+                ${openjdk_INSTALLER_RESOURCES_PATH}/signer.js
+                ${CMAKE_CURRENT_BINARY_DIR}/dist
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Creating ${PROJECT_NAME} signed distribution, path: [${CMAKE_CURRENT_BINARY_DIR}/dist] ..." )
+add_dependencies ( ${PROJECT_NAME}_dist_signed ${PROJECT_NAME}_dist image )
 
 # installer
 configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/installer.xsl
