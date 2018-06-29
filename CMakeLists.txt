@@ -67,7 +67,7 @@ configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/checker.rc
         ${CMAKE_CURRENT_BINARY_DIR}/checker.rc )
 configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/config.json
         ${CMAKE_CURRENT_BINARY_DIR}/config.json )
-configure_file ( ${OJDKBUILD_DIR}/lookaside/ca-certificates/ca-bundle.trust.crt
+configure_file ( ${OJDKBUILD_DIR}/lookaside/ca-certificates/ca-bundle.crt
         ${CMAKE_CURRENT_BINARY_DIR}/checker.crt COPYONLY )
 
 # dependencies
