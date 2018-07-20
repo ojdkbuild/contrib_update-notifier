@@ -93,6 +93,8 @@ target_include_directories( checker BEFORE PRIVATE
 
 target_compile_options ( checker PRIVATE /W4 /WX )
 
+target_compile_definitions ( checker PRIVATE -DVENDOR=${openjdk_VENDOR_DIRNAME} )
+
 target_link_libraries ( checker
         jansson
         popt

@@ -29,6 +29,13 @@
 
 #include "utils.hpp"
 
+#define TRANSFORM_QUOTE(value) #value
+#define TRANSFORM_STR(value) TRANSFORM_QUOTE(value)
+#ifndef VENDOR
+#define VENDOR ojdkbuild
+#endif // VENDOR
+#define VENDOR_STR TRANSFORM_STR(VENDOR)
+
 namespace checker {
 
 namespace { // anonymous
@@ -179,12 +186,12 @@ uint32_t extract_build(const std::vector<std::string>& post_dot_chunks) {
 
 Ver extract_version(json_t* json) {
     static const char* err = "Cannot extract version from DM response";
-    // https://developers.redhat.com/download-manager/file/java-1.8.0-openjdk-1.8.0.131-1.b11.redhat.windows.x86_64.msi
+    // https://developers.redhat.com/download-manager/file/java-1.8.0-openjdk-1.8.0.131-1.b11.redhat.windows.x86_64.zip
     std::string url = json_get_string(json, "url", "");
     if (url.empty()) {
         throw CheckerException(err);
     }
-    if (!utils::ends_with(url, ".msi")) {
+    if (!utils::ends_with(url, ".zip")) {
         throw CheckerException(err);
     }
     
@@ -192,9 +199,9 @@ Ver extract_version(json_t* json) {
     if (slash_chunks.size() < 3) {
         throw CheckerException(err);
     }
-    // java-1.8.0-openjdk-1.8.0.131-1.b11.redhat.windows.x86_64.msi
+    // java-1.8.0-openjdk-1.8.0.131-1.b11.redhat.windows.x86_64.zip
     const std::string& name = slash_chunks.back();
-    if(!utils::starts_with(name, "java-") || !utils::ends_with(name, ".msi")) {
+    if(!utils::starts_with(name, "java-") || !utils::ends_with(name, ".zip")) {
         throw CheckerException(err);
     }
     
@@ -210,7 +217,7 @@ Ver extract_version(json_t* json) {
         throw CheckerException(err);
     }
     
-    // 1.b11.redhat.windows.x86_64.msi
+    // 1.b11.redhat.windows.x86_64.zip
     const std::string& postfix = dash_chunks.back();
     std::vector<std::string> post_dot_chunks = utils::split(postfix, '.');
     if (post_dot_chunks.size() < 5) {
@@ -248,7 +255,7 @@ json_t* download_manager_transform(json_t* dmjson) {
     json.put_string("ui_update_header", "OpenJDK version " + ver.ver_string() + " is available for download");
     json.put_string("ui_update_text", "This version contains a number of security fixes.\n\n"
             "To proceed with download and installation please follow a link above, download page will be opened inside your web-browser.\n\n"
-            "To change a schedule of this notification please see 'ojdkbuild_jdk_update_checker' and 'ojdkbuild_jdk_update_notifier' tasks in 'Task Scheduler'.\n\n"
+            "To change a schedule of this notification please see '" VENDOR_STR "_jdk_update_checker' and '" VENDOR_STR "_jdk_update_notifier' tasks in 'Task Scheduler'.\n\n"
             "To disable this notification permanently please select the installed application in 'Programs and Features' with a right-click, choose 'Change' and disable 'Update Notifier' installation feature.");
     
     return json.release();
