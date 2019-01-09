@@ -158,15 +158,6 @@ add_custom_target ( ${PROJECT_NAME}_dist
         COMMENT "Creating ${PROJECT_NAME} distribution, path: [${CMAKE_CURRENT_BINARY_DIR}/dist] ..." )
 add_dependencies ( ${PROJECT_NAME}_dist ${PROJECT_NAME} )
 
-add_custom_target ( ${PROJECT_NAME}_dist_signed
-        # sign binaries
-        COMMAND ${${PROJECT_NAME}_NOTIFIER_JAVA_HOME}/bin/jjs.exe ${openjdk_SIGNER_JVM_OPTS}
-                ${openjdk_INSTALLER_RESOURCES_PATH}/signer.js
-                ${CMAKE_CURRENT_BINARY_DIR}/dist
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        COMMENT "Creating ${PROJECT_NAME} signed distribution, path: [${CMAKE_CURRENT_BINARY_DIR}/dist] ..." )
-add_dependencies ( ${PROJECT_NAME}_dist_signed ${PROJECT_NAME}_dist image )
-
 # installer
 configure_file ( ${CMAKE_CURRENT_LIST_DIR}/resources/installer.xsl
         ${CMAKE_CURRENT_BINARY_DIR}/installer.xsl )
