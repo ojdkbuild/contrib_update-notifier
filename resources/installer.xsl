@@ -72,12 +72,16 @@
         <CustomAction Id="checker_cleanup_impersonated" BinaryKey="WixCA" DllEntry="WixQuietExec${openjdk_INSTALLER_WIN64_EXEC_WIX}" Return="ignore" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
 
         <!-- immediate -->
+        <CustomAction Id="checker_preregister_immediate" Property="checker_preregister_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME}" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
+        <CustomAction Id="notifier_preregister_immediate" Property="notifier_preregister_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME}" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
         <CustomAction Id="checker_register_immediate" Property="checker_register_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_CHECKER_SCHEDULE} /tr &quot;wscript \&quot;[UPDATEDIR]checker.vbs\&quot;&quot;" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
         <CustomAction Id="notifier_register_immediate" Property="notifier_register_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /create /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME} ${${PROJECT_NAME}_INSTALLER_NOTIFIER_SCHEDULE} /tr &quot;\&quot;[UPDATEDIR]notifier.exe\&quot;&quot;" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
         <CustomAction Id="checker_unregister_immediate" Property="checker_unregister_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${${PROJECT_NAME}_INSTALLER_CHECKER_TASK_NAME}" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
         <CustomAction Id="notifier_unregister_immediate" Property="notifier_unregister_deferred" Value="&quot;[SystemFolder]schtasks.exe&quot; /delete /f /tn ${${PROJECT_NAME}_INSTALLER_NOTIFIER_TASK_NAME}" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
 
         <!-- deferred -->
+        <CustomAction Id="checker_preregister_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec${openjdk_INSTALLER_WIN64_EXEC_WIX}" Return="ignore" Execute="deferred" Impersonate="no" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
+        <CustomAction Id="notifier_preregister_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec${openjdk_INSTALLER_WIN64_EXEC_WIX}" Return="ignore" Execute="deferred" Impersonate="no" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
         <CustomAction Id="checker_register_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec${openjdk_INSTALLER_WIN64_EXEC_WIX}" Return="ignore" Execute="deferred" Impersonate="no" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
         <CustomAction Id="notifier_register_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec${openjdk_INSTALLER_WIN64_EXEC_WIX}" Return="ignore" Execute="deferred" Impersonate="no" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
         <CustomAction Id="checker_unregister_deferred" BinaryKey="WixCA" DllEntry="WixQuietExec${openjdk_INSTALLER_WIN64_EXEC_WIX}" Return="ignore" Execute="deferred" Impersonate="no" xmlns="http://schemas.microsoft.com/wix/2006/wi"/>
@@ -89,12 +93,16 @@
             <Custom Action="checker_cleanup_impersonated" Before="RemoveFiles"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
 
             <!-- immediate -->
+            <Custom Action="checker_preregister_immediate" Before="InstallInitialize"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
+            <Custom Action="notifier_preregister_immediate" Before="InstallInitialize"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
             <Custom Action="checker_register_immediate" Before="InstallInitialize"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
             <Custom Action="notifier_register_immediate" Before="InstallInitialize"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
             <Custom Action="checker_unregister_immediate" Before="InstallInitialize"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
             <Custom Action="notifier_unregister_immediate" Before="InstallInitialize"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
 
             <!-- deferred -->
+            <Custom Action="checker_preregister_deferred" Before="notifier_preregister_deferred"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
+            <Custom Action="notifier_preregister_deferred" Before="checker_register_deferred"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
             <Custom Action="checker_register_deferred" Before="notifier_register_deferred"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
             <Custom Action="notifier_register_deferred" Before="InstallFinalize"><![CDATA[&update_notifier=3 AND NOT !update_notifier=3]]></Custom>
             <Custom Action="checker_unregister_deferred" Before="notifier_unregister_deferred"><![CDATA[!update_notifier=3 AND REMOVE]]></Custom>
