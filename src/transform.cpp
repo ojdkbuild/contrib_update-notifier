@@ -181,7 +181,8 @@ uint32_t extract_build(const std::vector<std::string>& post_dot_chunks) {
     if (buildst.length() < 2) {
         throw CheckerException("Cannot extract 'build' from DM response");
     }
-    return utils::parse_uint32(buildst.substr(1));
+    size_t start_idx = '0' != buildst.at(1) ? 1 : 2;
+    return utils::parse_uint32(buildst.substr(start_idx));
 }
 
 Ver extract_version(json_t* json) {
