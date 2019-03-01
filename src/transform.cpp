@@ -121,9 +121,11 @@ public:
     
     // 1.8.0.131-1.b11
     std::string ver_string() {
+        std::string buildst = utils::to_string(ver_build);
+        utils::pad_left(buildst, 2, '0');
         return "1." + utils::to_string(ver_major) + ".0." +
                 utils::to_string(ver_update) + "-" + utils::to_string(ver_release) + ".b" +
-                utils::to_string(ver_build);
+                buildst;
     }
     
     // 10813101011
