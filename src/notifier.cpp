@@ -212,7 +212,11 @@ HRESULT CALLBACK link_clicked_callback(HWND hwnd, UINT uNotification, WPARAM /* 
     }
     TRACER.trace("update proceed selected");
     HINSTANCE res = ShellExecuteW(NULL, NULL, reinterpret_cast<LPCTSTR> (lParam), NULL, NULL, SW_SHOW);
+#pragma warning(push)
+#pragma warning(disable : 4311) // 'reinterpret_cast': pointer truncation from 'HINSTANCE' to 'int'
+#pragma warning(disable : 4302) // 'reinterpret_cast': truncation from 'HINSTANCE' to 'int'
     int intres = reinterpret_cast<int> (res);
+#pragma warning(pop)
     bool success = intres > 32;
     if (!success) {
         TRACER.trace("'ShellExecuteW' fail, error: [" + ch::utils::to_string(intres) + "]");

@@ -142,8 +142,8 @@ public:
         return headers.back();
     }
 
-    void set_slist(struct curl_slist* slist) {
-        this->slist = slist;
+    void set_slist(struct curl_slist* cslist) {
+        this->slist = cslist;
     }
 
 private:
